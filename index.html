@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>xrprof</title>
+<meta name="description" content="xrprof: research, immersive projects and teaching in extended reality.">
+<meta name="theme-color" content="#000000">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@500;700&display=swap" rel="stylesheet">
+<style>
+/* Layout idea: the whole window is a CRT tube. A 1-bit sea fills it, the wordmark floats
+   mid-water and five buoys sit on the rim. One visual world, so one theme by choice. */
+:root{
+  --ink:#f2f5ee;      /* phosphor white */
+  --water:#0c0f0d;    /* lit-tube black */
+  --glass:#020303;    /* unlit glass around the picture */
+  --void:#000;        /* bezel */
+  --display:"Pixelify Sans","Courier New",monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;background:var(--void);color:var(--ink);overflow:hidden;font-family:var(--display)}
+.tv{position:fixed;inset:0;padding:clamp(6px,1.4vmin,16px)}
+.tube{position:relative;width:100%;height:100%;overflow:hidden;isolation:isolate;touch-action:none;
+  background:var(--glass);border-radius:clamp(18px,4.5vmin,48px);
+  box-shadow:0 0 0 2px #171a18,0 0 46px rgba(220,255,235,.08)}
+.picture{position:absolute;inset:0;animation:poweron 1s cubic-bezier(.2,.8,.2,1) both}
+canvas{position:absolute;inset:0;width:100%;height:100%;display:block;image-rendering:pixelated;
+  filter:blur(.4px);animation:flicker 6s steps(1) infinite}
+.fx{position:absolute;inset:0;pointer-events:none}
+.vignette{background:radial-gradient(ellipse at center,transparent 58%,rgba(0,0,0,.34) 86%,rgba(0,0,0,.82) 100%);
+  box-shadow:inset 0 0 70px rgba(0,0,0,.9)}
+.glare{background:linear-gradient(128deg,rgba(255,255,255,.075) 0%,rgba(255,255,255,.02) 17%,transparent 34%);mix-blend-mode:screen}
+.band{inset:auto 0 auto 0;top:-24%;height:24%;
+  background:linear-gradient(to bottom,transparent,rgba(255,255,255,.045) 50%,transparent);animation:roll 9s linear infinite}
+
+/* Buoy links: invisible hit areas laid over the buoys the canvas draws. */
+.buoy{position:absolute;display:block;border-radius:50%;color:inherit;text-decoration:none;
+  -webkit-tap-highlight-color:transparent;outline:none}
+.buoy::before{content:"";position:absolute;left:50%;top:50%;width:var(--gs,120px);aspect-ratio:1;
+  transform:translate(-50%,-50%);border-radius:50%;pointer-events:none;mix-blend-mode:screen;opacity:0;
+  background:radial-gradient(closest-side,rgba(242,245,238,.34),rgba(242,245,238,.13) 52%,transparent);
+  transition:opacity .5s ease}
+.buoy:hover::before,.buoy:focus-visible::before{opacity:1;animation:breathe 2.6s ease-in-out infinite}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+
+/* Shown only if the canvas cannot run. */
+.plain{display:none;position:absolute;inset:0;flex-direction:column;align-items:center;justify-content:center;gap:22px;padding:24px;text-align:center}
+.plain b{font-size:clamp(44px,12vw,96px);line-height:1}
+.plain ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px;font-size:20px;text-transform:uppercase;letter-spacing:.06em}
+.plain a{color:var(--ink)}
+.nojs .plain{display:flex}
+.nojs .picture,.nojs nav.sea{display:none}
+
+@keyframes poweroff{0%{transform:none;filter:none}55%{transform:scale(1,.004);filter:brightness(7)}100%{transform:scale(0,.004);filter:brightness(10)}}
+.tv-off .picture{animation:poweroff .45s cubic-bezier(.55,0,.9,.45) forwards}
+.tv-again .picture{animation:poweron2 1s cubic-bezier(.2,.8,.2,1) both}
+.tv-off nav.sea,.tv-off .band{visibility:hidden}
+@keyframes poweron2{0%{transform:scale(.55,.004);filter:brightness(7)}42%{transform:scale(1,.004);filter:brightness(7)}100%{transform:none;filter:none}}
+@keyframes poweron{0%{transform:scale(.55,.004);filter:brightness(7)}42%{transform:scale(1,.004);filter:brightness(7)}100%{transform:none;filter:none}}
+@keyframes flicker{0%,100%{opacity:1}47%{opacity:.975}49%{opacity:1}83%{opacity:.985}85%{opacity:1}}
+@keyframes roll{to{transform:translateY(520%)}}
+@keyframes breathe{50%{opacity:.62}}
+@media (prefers-reduced-motion:reduce){.picture,.tv-off .picture,.tv-again .picture,canvas,.band,.buoy:hover::before,.buoy:focus-visible::before{animation:none}.band{display:none}}
+</style>
+</head>
+<body class="nojs">
+<main class="tv">
+  <div class="tube" id="tube">
+    <div class="picture"><canvas id="sea" aria-hidden="true"></canvas></div>
+    <h1 class="sr">xrprof</h1>
+    <nav class="sea" aria-label="Sections">
+      <a class="buoy" href="about-me/" data-lines="ABOUT|ME"><span class="sr">About Me</span></a>
+      <a class="buoy" href="my-research/" data-lines="MY|RESEARCH"><span class="sr">My Research</span></a>
+      <a class="buoy" href="my-immersive-projects/" data-lines="MY IMMERSIVE|PROJECTS"><span class="sr">My Immersive Projects</span></a>
+      <a class="buoy" href="my-teaching/" data-lines="MY|TEACHING"><span class="sr">My Teaching</span></a>
+      <a class="buoy" href="contact-me/" data-lines="CONTACT|ME"><span class="sr">Contact Me</span></a>
+    </nav>
+    <div class="plain">
+      <b>xrprof</b>
+      <ul>
+        <li><a href="about-me/">About Me</a></li>
+        <li><a href="my-research/">My Research</a></li>
+        <li><a href="my-immersive-projects/">My Immersive Projects</a></li>
+        <li><a href="my-teaching/">My Teaching</a></li>
+        <li><a href="contact-me/">Contact Me</a></li>
+      </ul>
+    </div>
+    <div class="fx band"></div>
+    <div class="fx vignette"></div>
+    <div class="fx glare"></div>
+  </div>
+</main>
+
+<script>
+/* Folder links ("about-me/") work on a real web server. Anywhere else (a file opened
+   from disk, a preview host) point them at the index.html inside the folder. */
+(function(){
+  var h=location.hostname;
+  var server=location.protocol!=='file:'&&(/(^|\.)xrprof\.org$/.test(h)||/\.(github\.io|pages\.dev|netlify\.app|vercel\.app)$/.test(h)||h==='localhost'||h==='127.0.0.1');
+  if(server)return;
+  document.querySelectorAll('a[href$="/"]').forEach(function(a){
+    var r=a.getAttribute('href'); if(!/^[a-z]+:/i.test(r))a.setAttribute('href',r+'index.html');
+  });
+})();
+
+/* Changing page works like changing the set: the picture collapses to a line and a dot
+   (class "tv-off"), the next page loads, and its picture snaps open (the "poweron" animation). */
+(function(){
+  var root=document.documentElement;
+  var still=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function centre(){root.style.setProperty('--oy',(window.scrollY+window.innerHeight/2)+'px');}
+  centre();
+  window.addEventListener('pageshow',function(e){          /* coming back with the Back button */
+    root.classList.remove('tv-off');
+    if(e.persisted){centre();root.classList.add('tv-again');setTimeout(function(){root.classList.remove('tv-again');},1100);}
+  });
+  if(still)return;
+  document.addEventListener('click',function(e){
+    if(e.defaultPrevented||e.button||e.metaKey||e.ctrlKey||e.shiftKey||e.altKey)return;
+    var a=e.target.closest&&e.target.closest('a[href]');
+    if(!a||a.target==='_blank'||a.hasAttribute('download'))return;
+    var to;
+    try{to=new URL(a.href,location.href);}catch(_){return;}
+    if(!/^(https?|file):$/.test(to.protocol)||to.host!==location.host||to.pathname===location.pathname)return;
+    e.preventDefault();
+    centre();
+    root.classList.add('tv-off');
+    setTimeout(function(){location.href=a.href;},440);
+  });
+})();
+</script>
+<script>
+(function(){
+'use strict';
+var tube=document.getElementById('tube'), cv=document.getElementById('sea');
+var ctx=cv.getContext&&cv.getContext('2d');
+if(!ctx)return;
+document.body.classList.remove('nojs');
+
+/* ---------- art: all 1-bit, '#' is a lit pixel ---------- */
+var ICONS=[["...............",".....#####.....","....#######....","....#######....","....#######....","....#######....",".....#####.....","......###......","...#########...","..###########..",".#############.",".#############.",".#############.",".#############.","..............."],["...............","....#######....",".....#...#.....",".....#...#.....",".....#...#.....",".....#...#.....","....#.....#....","....#.....#....","...#.......#...","...#########...","..###########..","..###########..",".#############.",".#############.","..............."],["...............","...............","...............","..###########..",".#############.","###############","###..#####..###","##....###....##","##....###....##","###..#####..###","###############",".######.######.","..####...####..","...............","..............."],["...............","...............",".......#.......","....#######....",".#############.","....#######..#.",".......#.....#.","...#.......#.#.","...#########.#.","...#########.#.","....#######.###","......###...###","...............","...............","..............."],["...............","...............","...............","###############","##...........##","#.#.........#.#","#..#.......#..#","#...#.....#...#","#....#...#....#","#.....###.....#","#.............#","###############","...............","...............","..............."]];                       /* 15x15, one per buoy, in link order */
+var TITLE={                                /* 5x9 lowercase with a descender row */
+  x:['.....','.....','#...#','##.##','.###.','##.##','#...#','.....','.....'],
+  r:['.....','.....','#.###','##...','#....','#....','#....','.....','.....'],
+  p:['.....','.....','####.','#...#','#...#','#...#','####.','#....','#....'],
+  o:['.....','.....','.###.','#...#','#...#','#...#','.###.','.....','.....'],
+  f:['..##.','.#...','###..','.#...','.#...','.#...','.#...','.....','.....']
+};
+var F=function(s){return s.split('/');};   /* 5x7 capitals */
+var FONT={
+ A:F('.###./#...#/#...#/#####/#...#/#...#/#...#'),B:F('####./#...#/#...#/####./#...#/#...#/####.'),
+ C:F('.###./#...#/#..../#..../#..../#...#/.###.'),D:F('####./#...#/#...#/#...#/#...#/#...#/####.'),
+ E:F('#####/#..../#..../####./#..../#..../#####'),F:F('#####/#..../#..../####./#..../#..../#....'),
+ G:F('.###./#...#/#..../#.###/#...#/#...#/.###.'),H:F('#...#/#...#/#...#/#####/#...#/#...#/#...#'),
+ I:F('.###./..#../..#../..#../..#../..#../.###.'),J:F('..###/...#./...#./...#./...#./#..#./.##..'),
+ K:F('#...#/#..#./#.#../##.../#.#../#..#./#...#'),L:F('#..../#..../#..../#..../#..../#..../#####'),
+ M:F('#...#/##.##/#.#.#/#.#.#/#...#/#...#/#...#'),N:F('#...#/##..#/#.#.#/#..##/#...#/#...#/#...#'),
+ O:F('.###./#...#/#...#/#...#/#...#/#...#/.###.'),P:F('####./#...#/#...#/####./#..../#..../#....'),
+ Q:F('.###./#...#/#...#/#...#/#.#.#/#..#./.##.#'),R:F('####./#...#/#...#/####./#.#../#..#./#...#'),
+ S:F('.####/#..../#..../.###./....#/....#/####.'),T:F('#####/..#../..#../..#../..#../..#../..#..'),
+ U:F('#...#/#...#/#...#/#...#/#...#/#...#/.###.'),V:F('#...#/#...#/#...#/#...#/#...#/.#.#./..#..'),
+ W:F('#...#/#...#/#...#/#.#.#/#.#.#/##.##/#...#'),X:F('#...#/#...#/.#.#./..#../.#.#./#...#/#...#'),
+ Y:F('#...#/#...#/.#.#./..#../..#../..#../..#..'),Z:F('#####/....#/...#./..#../.#.../#..../#####')
+};
+var WAVE=[['..##....','.#..#..#','#....##.'],['....##..','#..#..#.','.##....#']];
+var B4=[0,8,2,10,12,4,14,6,3,11,1,9,15,7,13,5];
+
+/* ---------- screen ---------- */
+var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+var K=0.1;                   /* barrel curve of the tube */
+var R=13;                    /* buoy radius, in picture pixels */
+var SHORT=250;               /* picture pixels across the window's short side */
+var W=0,H=0,PX=2,OW=0,OH=0,buf,lut,shade,img,o32,pal=new Uint32Array(8);
+var TS=3,tcx=0,tcy=0,buoys=[],hot=-1,T=0;
+var links=[].slice.call(document.querySelectorAll('.buoy'));
+var ptr={x:0,y:0,on:false,last:-99,released:-1};
+var turtle={x:-24,y:0,h:0,v:0,ph:0,fa:1.6,ra:2.6,yaw:0,spin:1,wake:[],born:false};
+
+function rgb(r,g,b){return (255<<24)|(b<<16)|(g<<8)|r;}
+function warp(u,v){var f=(1+K*(u*u+v*v))/(1+K);return [u*f,v*f];}
+function toPicture(x,y){            /* window px -> picture px, through the curve */
+  var r=tube.getBoundingClientRect();
+  var w=warp((x-r.left)/r.width*2-1,(y-r.top)/r.height*2-1);
+  return [(w[0]+1)*.5*W,(w[1]+1)*.5*H];
+}
+
+function arrange(){               /* where everything goes, or ok:false if this picture is too small */
+  var a=W/2-(R+16), b=H/2-(R+14), cx=W/2, cy=H/2, fp=R+8, gap=10, i, j;
+  var pts=[215,325,90,150,30].map(function(d){var q=d*Math.PI/180;return [cx+Math.cos(q)*a,cy+Math.sin(q)*b];});
+  var ok=a>0&&b>0;
+  for(i=0;i<5&&ok;i++)for(j=i+1;j<5;j++){
+    var dx=pts[i][0]-pts[j][0], dy=pts[i][1]-pts[j][1];
+    if(Math.sqrt(dx*dx+dy*dy)<2*fp+gap)ok=false;                 /* buoys keep clear of each other */
+  }
+  var ty=cy-H*.04, ts=0;
+  if(ok)for(var s=Math.min(Math.floor(W*.76/35),Math.floor(H*.3/9));s>=2;s--){
+    var hw=17.5*s*1.1, hh=5.1*s*1.1, clear=true;                 /* the word, with its bob, as seen through the curve */
+    for(i=0;i<5;i++){
+      var ex=Math.max(0,Math.abs(pts[i][0]-cx)-hw), ey=Math.max(0,Math.abs(pts[i][1]-ty)-hh);
+      if(Math.sqrt(ex*ex+ey*ey)<fp+gap){clear=false;break;}      /* and clear of the word */
+    }
+    if(clear){ts=s;break;}
+  }
+  return {ok:ok&&ts>=2,ts:Math.max(2,ts),pts:pts,ty:ty};
+}
+
+function resize(){
+  /* The picture is always SHORT pixels across its short side, so a bigger window is the same
+     scene zoomed in and a smaller one is zoomed out. Only the window's shape moves things. */
+  var r=tube.getBoundingClientRect(), cw=Math.max(120,r.width), ch=Math.max(120,r.height), plan;
+  var oldW=W, oldH=H;
+  PX=Math.max(.6,Math.min(cw,ch)/SHORT);
+  W=Math.ceil(cw/PX); H=Math.ceil(ch/PX); plan=arrange();
+  if(oldW){turtle.x*=W/oldW;turtle.y*=H/oldH;ptr.x*=W/oldW;ptr.y*=H/oldH;turtle.wake.length=0;}
+  var k=Math.min(Math.min(window.devicePixelRatio||1,3),Math.sqrt(1.5e6/(cw*ch)));   /* sharp, but capped for speed */
+  OW=Math.round(cw*k); OH=Math.round(ch*k);
+  cv.width=OW; cv.height=OH;
+  buf=new Uint8Array(W*H);
+  img=ctx.createImageData(OW,OH); o32=new Uint32Array(img.data.buffer);
+  lut=new Int32Array(OW*OH); shade=new Uint8Array(OW*OH);
+  var per=OH/H, edge=per>=3?1/per:.5, dim=per>=3?.5:.7, lines=per>=2;
+  pal[0]=rgb(12,15,13); pal[1]=rgb(6,8,7); pal[2]=rgb(10,12,11); pal[3]=pal[1];
+  pal[4]=rgb(242,245,238); pal[5]=rgb(242*dim|0,245*dim|0,238*dim|0); pal[6]=rgb(204,207,200); pal[7]=pal[5];
+  for(var oy=0,i=0;oy<OH;oy++){
+    var v=(oy+.5)/OH*2-1;
+    for(var ox=0;ox<OW;ox++,i++){
+      var u=(ox+.5)/OW*2-1, f=(1+K*(u*u+v*v))/(1+K), wu=u*f, wv=v*f;
+      if(wu<=-1||wu>=1||wv<=-1||wv>=1){lut[i]=-1;continue;}
+      var fx=(wu+1)*.5*W, fy=(wv+1)*.5*H, ix=fx|0, iy=fy|0;
+      lut[i]=iy*W+ix;
+      shade[i]=lines?((fy-iy>=1-edge)?1:((per>=3&&fx-ix>=1-edge)?2:0)):(oy&1);   /* scanline, then pixel gap */
+    }
+  }
+  layout(cw,ch,plan);
+}
+
+function layout(cw,ch,plan){
+  TS=plan.ts;
+  var c=warp(0,plan.ty/H*2-1); tcx=(c[0]+1)*.5*W; tcy=(c[1]+1)*.5*H;
+  var hw=17.5*TS+4, hh=5.1*TS+4, size=2*(R+8)*PX;
+  buoys=links.map(function(a,i){
+    var lines=a.getAttribute('data-lines').split('|'), p=plan.pts[i];
+    var w=warp(p[0]/W*2-1,p[1]/H*2-1), x=(w[0]+1)*.5*W, y=(w[1]+1)*.5*H;
+    a.style.width=size+'px'; a.style.height=size+'px';
+    a.style.left=(p[0]/W*cw-size/2)+'px'; a.style.top=(p[1]/H*ch-size/2)+'px';
+    a.style.setProperty('--gs',(R*2+44)*PX+'px');
+    var wide=Math.max.apply(null,lines.map(function(s){return s.length*6-1;})), tall=lines.length*9;
+    function fits(y0){                                           /* on screen and off the word */
+      if(y0-3<4||y0+tall+1>H-4)return false;
+      var x0=Math.max(4,Math.min(W-4-wide,x-wide/2))-3, x1=x0+wide+6;
+      return !(x1>tcx-hw&&x0<tcx+hw&&y0+tall+1>tcy-hh&&y0-3<tcy+hh);
+    }
+    var below=Math.round(y)+R+11, above=Math.round(y)-R-11-tall+2;
+    return {x:x,y:y,lines:lines,icon:ICONS[i],ly:fits(below)?below:(fits(above)?above:below)};
+  });
+  titleField();
+  if(!turtle.born){turtle.y=H*.82;turtle.born=true;}
+}
+
+/* ---------- drawing into the 1-bit picture ---------- */
+function px(x,y,c){if(x>=0&&x<W&&y>=0&&y<H)buf[y*W+x]=c;}
+function box(x,y,w,h,c){for(var j=0;j<h;j++)for(var i=0;i<w;i++)px(x+i,y+j,c);}
+function foam(x,y,w,h,k){for(var j=0;j<h;j++)for(var i=0;i<w;i++)px(x+i,y+j,(x+i+y+j+k)&1);}
+function disc(cx,cy,r,c,k){
+  var rr=r*r+r*.8;
+  for(var j=-r;j<=r;j++)for(var i=-r;i<=r;i++)if(i*i+j*j<=rr)px(cx+i,cy+j,c===2?((cx+i+cy+j+k)&1):c);
+}
+function ring(cx,cy,rx,ry,mod,off){
+  var n=Math.max(8,Math.round(3.3*(rx+ry)));
+  for(var k=0;k<n;k++){
+    if((k+off)%mod)continue;
+    var a=k/n*6.2832; px(Math.round(cx+Math.cos(a)*rx),Math.round(cy+Math.sin(a)*ry),1);
+  }
+}
+function glyph(rows,x,y,s,mode,grow,k){   /* mode 0 black, 1 white, 2 foam */
+  for(var j=0;j<rows.length;j++){
+    var row=rows[j];
+    for(var i=0;i<row.length;i++){
+      if(row.charCodeAt(i)!==35)continue;
+      var gx=x+i*s-grow, gy=y+j*s-grow, g=s+2*grow;
+      if(mode===2)foam(gx,gy,g,g,k); else box(gx,gy,g,g,mode);
+    }
+  }
+}
+function text(str,x,y,c){
+  for(var n=0;n<str.length;n++){var g=FONT[str.charAt(n)]; if(g)glyph(g,x+n*6,y,1,c,0,0);}
+}
+function label(str,cx,y,inv){
+  var w=str.length*6-1, x=Math.round(Math.max(4,Math.min(W-4-w,cx-w/2)));
+  if(inv){box(x-4,y-3,w+8,13,0);box(x-3,y-2,w+6,11,1);text(str,x,y,0);return;}
+  for(var j=-1;j<=1;j++)for(var i=-1;i<=1;i++)if(i||j)text(str,x+i,y+j,0);
+  text(str,x,y,1);
+}
+
+function hash(a,b){var n=Math.sin(a*127.1+b*311.7)*43758.5453;return n-Math.floor(n);}
+function water(t){
+  buf.fill(0);
+  var CW=22,CH=11, ox=t*2.4, oy=t*1.0;
+  var r0=Math.floor(oy/CH)-1, r1=Math.floor((H+oy)/CH)+1;
+  for(var row=r0;row<=r1;row++){
+    var st=(row&1)?CW/2:0, c0=Math.floor((ox+st)/CW)-1, c1=Math.floor((W+ox+st)/CW)+1;
+    for(var col=c0;col<=c1;col++){
+      var h=hash(col,row);
+      var swell=.5+.25*(Math.sin(col*.37+t*.06)+Math.sin(row*.53-t*.045));   /* calm and busy patches */
+      var life=(h+t*.045)%1;
+      if(life>swell*.9)continue;
+      var x=Math.round(col*CW-st-ox+7+h*7-3), y=Math.round(row*CH-oy+4+hash(row,col)*4-2);
+      if(life>swell*.9-.07){px(x+3,y+1,1);px(x+4,y+1,1);continue;}                /* a wavelet fading out */
+      glyph(WAVE[(Math.floor(t*1.5+h*5))&1],x,y,1,1,0,0);
+      if(h>.86&&((t*2+h*9)|0)&1)px(x+11,y-3,1);                                  /* glint */
+    }
+  }
+}
+
+/* Ripples that follow the outline of the word itself: a distance map around the letters,
+   built once per layout, then contour lines of it drawn as dotted rings that spread and thin out. */
+var TM=14, field=null, fx0=0, fy0=0, fw=0, fh=0;
+function titleField(){
+  var s=TS, adv=6*s, word='xrprof', n, i, x, y, v, c, r, a, b;
+  fw=word.length*adv-s+2*TM; fh=9*s+2*TM;
+  fx0=Math.round(tcx-(fw-2*TM)/2)-TM; fy0=Math.round(tcy-4.5*s)-TM;
+  field=new Uint16Array(fw*fh).fill(9999);
+  /* Start from the word's silhouette: each letter filled from its top pixel to its bottom pixel,
+     column by column, and the x-height band bridged between letters. Rings then hug the outline
+     (up over the f, down under the p) without filling the gaps inside and between letters. */
+  for(b=2*s;b<7*s;b++)for(a=0;a<fw-2*TM;a++)field[(TM+b)*fw+TM+a]=0;
+  for(n=0;n<word.length;n++){
+    var rows=TITLE[word.charAt(n)];
+    for(c=0;c<5;c++){
+      var top=-1, bot=-1;
+      for(r=0;r<rows.length;r++)if(rows[r].charCodeAt(c)===35){if(top<0)top=r;bot=r;}
+      if(top<0)continue;
+      for(b=top*s;b<(bot+1)*s;b++)for(a=0;a<s;a++)field[(TM+b)*fw+TM+n*adv+c*s+a]=0;
+    }
+  }
+  for(y=0,i=0;y<fh;y++)for(x=0;x<fw;x++,i++){            /* distance, in thirds of a pixel */
+    v=field[i];
+    if(x>0)v=Math.min(v,field[i-1]+3);
+    if(y>0){v=Math.min(v,field[i-fw]+3); if(x>0)v=Math.min(v,field[i-fw-1]+4); if(x<fw-1)v=Math.min(v,field[i-fw+1]+4);}
+    field[i]=v;
+  }
+  for(y=fh-1,i=fw*fh-1;y>=0;y--)for(x=fw-1;x>=0;x--,i--){
+    v=field[i];
+    if(x<fw-1)v=Math.min(v,field[i+1]+3);
+    if(y<fh-1){v=Math.min(v,field[i+fw]+3); if(x<fw-1)v=Math.min(v,field[i+fw+1]+4); if(x>0)v=Math.min(v,field[i+fw-1]+4);}
+    field[i]=v;
+  }
+}
+function titleRipples(t){
+  if(!field)return;
+  for(var k=0;k<2;k++){
+    var e=reduce?5+k*4:4+(t*1.8+k*4)%8, lo=Math.round(e*3), mod=2+(((e-4)/2.7)|0), x, y, i;
+    for(y=0,i=0;y<fh;y++)for(x=0;x<fw;x++,i++){
+      var v=field[i];
+      if(v>=lo&&v<lo+3&&(x+y*2+k)%mod===0)px(fx0+x,fy0+y,1);
+    }
+  }
+}
+function drawTitle(t){
+  var s=TS, word='xrprof', adv=6*s, total=word.length*adv-s;
+  var x0=Math.round(tcx-total/2), y0=Math.round(tcy-4.5*s), k=(t*2)|0, i, e;
+  titleRipples(t);
+  var off=[];
+  for(i=0;i<word.length;i++)
+    off.push(reduce?[0,0]:[Math.round(Math.sin(t*.55+i*.6)*.9),
+      Math.round(Math.sin(t*1.45-i*.8)*s*.42+Math.sin(t*.8+i*1.7)*s*.2)]);
+  for(var pass=0;pass<3;pass++)                         /* foam, dark gap, then the letters */
+    for(i=0;i<word.length;i++)
+      glyph(TITLE[word.charAt(i)],x0+i*adv+off[i][0],y0+off[i][1],s,pass===0?2:pass===1?0:1,pass===0?3:pass===1?1:0,k);
+}
+
+function drawBuoy(b,i,t){
+  var bob=reduce?0:Math.round(Math.sin(t*1.25+i*1.9)*1.3);
+  var cx=Math.round(b.x+(reduce?0:Math.sin(t*.6+i*2.3)*.9)), cy=Math.round(b.y)+bob, e, j;
+  for(j=0;j<2;j++){e=reduce?j*4:(t*2.6+i*3+j*4)%8; ring(cx,cy,R+8+e,(R+8+e)*.94,2+((e/3)|0),i);}
+  if(hot===i){                                          /* gentle dithered glow */
+    var g=R+19, lvl=reduce?.62:.56+.22*Math.sin(t*2.6);
+    for(var dy=-g;dy<=g;dy++)for(var dx=-g;dx<=g;dx++){
+      var d=Math.sqrt(dx*dx+dy*dy); if(d<R+6||d>g)continue;
+      if(B4[((cy+dy)&3)*4+((cx+dx)&3)]/16<(1-(d-R-6)/(g-R-6))*lvl)px(cx+dx,cy+dy,1);
+    }
+  }
+  disc(cx,cy,R+6,2,(t*2)|0); disc(cx,cy,R+5,0); disc(cx,cy,R+4,1); disc(cx,cy,R+2,0); disc(cx,cy,R,1);
+  glyph(b.icon,cx-7,cy-7,1,0,0,0);
+}
+function drawLabel(b){                 /* the name appears only on hover, focus or first tap */
+  for(var j=0;j<b.lines.length;j++)label(b.lines[j],Math.round(b.x),b.ly+j*9,true);
+}
+
+/* ---------- the turtle ---------- */
+var TB=11, TN=2*TB+1, mask=new Uint8Array(TN*TN), TZ=2;   /* TZ: body units per picture pixel */
+function seg(px_,py_,ax,ay,bx,by){
+  var vx=bx-ax,vy=by-ay,wx=px_-ax,wy=py_-ay,q=Math.max(0,Math.min(1,(wx*vx+wy*vy)/(vx*vx+vy*vy)));
+  var dx=wx-vx*q,dy=wy-vy*q; return Math.sqrt(dx*dx+dy*dy);
+}
+function drawTurtle(){
+  var c=Math.cos(turtle.h+turtle.yaw), s=Math.sin(turtle.h+turtle.yaw), ox=Math.round(turtle.x), oy=Math.round(turtle.y), i, j, m;
+  /* Front flipper: shoulder, elbow, then a long blade swept back, like a sickle. */
+  var fa=turtle.fa, ra=turtle.ra;
+  var ex=4.6+Math.cos(fa)*4.6, ey=4.4+Math.sin(fa)*4.6;
+  var mx=ex+Math.cos(fa+.75)*4.4, my=ey+Math.sin(fa+.75)*4.4;
+  var tx=mx+Math.cos(fa+1.45)*4.6, ty=my+Math.sin(fa+1.45)*4.6;
+  var rx=-6.2+Math.cos(ra)*4.6, ry=3.6+Math.sin(ra)*4.6;
+  for(j=-TB;j<=TB;j++)for(i=-TB;i<=TB;i++){
+    var dx=ox+i-turtle.x, dy=oy+j-turtle.y, lx=(dx*c+dy*s)*TZ, ly=(-dx*s+dy*c)*TZ, ay=Math.abs(ly);
+    m=0;
+    if(seg(lx,ay,4.6,4.4,ex,ey)<2.1||seg(lx,ay,ex,ey,mx,my)<1.9||seg(lx,ay,mx,my,tx,ty)<1.35)m=1;   /* front flippers */
+    else if(seg(lx,ay,-6.2,3.6,rx,ry)<1.5)m=1;                              /* rear paddles */
+    if(lx<-8&&lx>-11&&ay<1)m=1;                                             /* tail */
+    var hx=lx-11.4; if(hx*hx+ly*ly<10.6)m=1;                                /* head */
+    var e=lx*lx/72.3+ly*ly/46.2;                                            /* shell: pale rim, dithered dome */
+    if(e<=1)m=e>.5?1:(((ox+i+oy+j)&1)?1:2);
+    mask[(j+TB)*TN+i+TB]=m;
+  }
+  for(j=0;j<TN;j++)for(i=0;i<TN;i++){
+    m=mask[j*TN+i];
+    if(m===1)px(ox+i-TB,oy+j-TB,1);
+    else if(m===2)px(ox+i-TB,oy+j-TB,0);
+    else if((i>0&&mask[j*TN+i-1])||(i<TN-1&&mask[j*TN+i+1])||(j>0&&mask[(j-1)*TN+i])||(j<TN-1&&mask[(j+1)*TN+i]))
+      px(ox+i-TB,oy+j-TB,0);                                               /* dark outline */
+  }
+}
+/* One swim stroke, by phase 0..1. Returns [thrust, drag, front flipper angle].
+   Pull: the flippers sweep from forward to back and the turtle surges.
+   Glide: flippers trail, speed slowly bleeds away.
+   Recover: flippers come forward again, which brakes it. This is the slowest moment. */
+var STROKE=2.1, GAIN=1;
+function stroke(ph){
+  var e;
+  if(ph<.28){e=ph/.28; return [Math.sin(e*Math.PI),.9,.2+1.4*e*e*(3-2*e)];}
+  if(ph<.68)return [0,.9,1.6];
+  e=(ph-.68)/.32; return [0,1.9,1.6-1.4*e*e*(3-2*e)];
+}
+(function(){                              /* scale thrust so the average speed matches the cruise speed */
+  var v=0, sum=0, n=0, dt=1/30, t, q;
+  for(t=0;t<STROKE*8;t+=dt){q=stroke((t/STROKE)%1); v+=(q[0]-q[1]*v)*dt; if(t>=STROKE*7){sum+=v;n++;}}
+  GAIN=n/sum;
+})();
+function swim(dt){
+  var tx,ty,idle,base=Math.min(W,H), R0, following=false;
+  if(ptr.on&&!(ptr.released>=0&&T-ptr.released>8)){tx=ptr.x;ty=ptr.y;idle=T-ptr.last;R0=Math.max(15,base*.085);following=true;}
+  else if(hot>=0){tx=buoys[hot].x;ty=buoys[hot].y;idle=9;R0=R+13;}          /* keyboard focus */
+  else{tx=tcx;ty=tcy;idle=9;R0=Math.min(W*.4,H*.36);}                       /* nobody here: lap the word */
+  tx=Math.max(6,Math.min(W-6,tx)); ty=Math.max(6,Math.min(H-6,ty));
+  var k=Math.max(0,Math.min(1,(idle-.25)/1.1)), settle=k*k*(3-2*k);
+  var orbit=(R0+(following?Math.sin(T*.37)*R0*.16:Math.sin(T*.21)*R0*.08))*settle;
+  var dx=tx-turtle.x, dy=ty-turtle.y, d=Math.sqrt(dx*dx+dy*dy)||.001, ux=dx/d, uy=dy/d;
+  var hx=Math.cos(turtle.h), hy=Math.sin(turtle.h), side=-uy*hx+ux*hy;
+  if(Math.abs(side)>.3)turtle.spin=side>0?1:-1;
+  var pull=orbit>1?Math.max(-1.2,Math.min(3,(d-orbit)/orbit*1.5)):1;
+  var gx=-uy*turtle.spin*settle+ux*pull, gy=ux*turtle.spin*settle+uy*pull;
+  var want=Math.atan2(gy,gx);
+  if(d>orbit+30)want+=(Math.sin(T*.47)+Math.sin(T*.83+1.7))*.16;           /* a lazy meander on long runs */
+  var diff=want-turtle.h;
+  while(diff>Math.PI)diff-=6.2832; while(diff<-Math.PI)diff+=6.2832;
+  var cruise=base/225*(d>orbit+34?30:17);
+  if(settle<.5&&d<12)cruise*=Math.max(.12,d/12);                            /* ease in when it arrives */
+  cruise*=1-.4*Math.min(1,Math.abs(diff)/1.6);                              /* gentler strokes in tight turns */
+  var was=turtle.ph, ph=turtle.ph=(was+dt/STROKE)%1, pull=stroke(ph);
+  turtle.v+=(cruise*GAIN*pull[0]-pull[1]*turtle.v)*dt;                      /* burst, then water drag bleeds it off */
+  turtle.fa=pull[2];
+  turtle.ra=2.6+.2*Math.sin(ph*6.2832);
+  turtle.yaw=Math.sin(ph*6.2832)*.07;                                       /* the body rocks a little with each stroke */
+  var turn=(.45+1.5*Math.min(1,turtle.v/(cruise+1)))*dt;                    /* it steers best while it has way on */
+  turtle.h+=Math.max(-turn,Math.min(turn,diff));
+  turtle.x+=Math.cos(turtle.h)*turtle.v*dt; turtle.y+=Math.sin(turtle.h)*turtle.v*dt;
+  if(was<.14&&ph>=.14){                                                     /* each pull leaves a ring behind */
+    turtle.wake.push([turtle.x-Math.cos(turtle.h)*6,turtle.y-Math.sin(turtle.h)*6,T]);
+    if(turtle.wake.length>6)turtle.wake.shift();
+  }
+}
+
+function frame(t,dt){
+  var wt=reduce?0:t, i;
+  water(wt);
+  for(i=0;i<turtle.wake.length;i++){
+    var w=turtle.wake[i], a=t-w[2];
+    if(a<2.2)ring(Math.round(w[0]),Math.round(w[1]),1.5+a*2.4,1.5+a*2.4,2+((a*1.8)|0),i);
+  }
+  if(ptr.on&&t-ptr.last>.3&&!(ptr.released>=0&&t-ptr.released>8)){          /* rings where the pointer rests */
+    var e=reduce?4:(t*5)%9;
+    ring(Math.round(ptr.x),Math.round(ptr.y),2+e,2+e,2+((e/3)|0),0);
+  }
+  swim(dt);
+  drawTurtle();
+  drawTitle(wt);
+  for(i=0;i<buoys.length;i++)drawBuoy(buoys[i],i,wt);
+  if(hot>=0&&buoys[hot])drawLabel(buoys[hot]);
+  for(var n=o32.length,j=0;j<n;j++){var s=lut[j]; o32[j]=s<0?0:pal[(buf[s]<<2)|shade[j]];}
+  ctx.putImageData(img,0,0);
+}
+
+/* ---------- input ---------- */
+function point(e){
+  var p=toPicture(e.clientX,e.clientY);
+  if(!ptr.on||Math.abs(p[0]-ptr.x)+Math.abs(p[1]-ptr.y)>.8)ptr.last=T;
+  ptr.x=p[0];ptr.y=p[1];ptr.on=true;ptr.released=-1;
+}
+window.addEventListener('pointermove',point,{passive:true});
+window.addEventListener('pointerdown',function(e){
+  point(e);
+  if(e.pointerType!=='mouse'&&!(e.target.closest&&e.target.closest('.buoy')))hot=-1;
+},{passive:true});
+window.addEventListener('pointerup',function(e){if(e.pointerType!=='mouse')ptr.released=T;},{passive:true});
+document.documentElement.addEventListener('pointerleave',function(){ptr.on=false;});
+window.addEventListener('blur',function(){ptr.on=false;});
+var touch=false, tapAt=-1e9;
+links.forEach(function(a,i){
+  a.addEventListener('pointerdown',function(e){touch=e.pointerType!=='mouse'; if(touch)tapAt=performance.now();});
+  a.addEventListener('pointerenter',function(e){if(e.pointerType==='mouse')hot=i;});
+  a.addEventListener('pointerleave',function(e){if(e.pointerType==='mouse'&&document.activeElement!==a)hot=-1;});
+  a.addEventListener('focus',function(){if(performance.now()-tapAt>700)hot=i;});
+  a.addEventListener('blur',function(){hot=-1;});
+  a.addEventListener('click',function(e){            /* on touch the first tap names the buoy, the second opens it */
+    if(touch&&hot!==i){e.preventDefault();hot=i;}
+  });
+});
+window.addEventListener('pageshow',function(){hot=-1;});
+
+var stale=false;
+window.addEventListener('resize',function(){stale=true;});
+resize();
+
+var prev=0,acc=0,STEP=1/30;
+function loop(now){
+  requestAnimationFrame(loop);
+  var dt=Math.min(.1,(now-prev)/1000||0); prev=now; acc+=dt;
+  if(acc<STEP)return;
+  acc=acc%STEP; T+=STEP;
+  if(stale){stale=false;resize();}          /* re-fit while the window is being dragged */
+  frame(T,STEP);
+}
+frame(0,STEP);
+requestAnimationFrame(function(n){prev=n;requestAnimationFrame(loop);});
+})();
+</script>
+</body>
+</html>
