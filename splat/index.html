@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Splat Annotator | xrprof</title>
+<meta name="description" content="Drop in a Gaussian splat, look around it, and pin colour-tagged notes to points in the scene. Runs in your browser; your files are not uploaded.">
+<meta name="theme-color" content="#000000">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,600;1,400&family=Pixelify+Sans:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app.css?v=1">
+<script type="importmap">
+{"imports":{
+  "three":"./vendor/three.min.js",
+  "three/addons/controls/OrbitControls.js":"./vendor/OrbitControls.js",
+  "three/addons/postprocessing/Pass.js":"./vendor/Pass.js",
+  "@sparkjsdev/spark":"./vendor/spark.module.min.js"
+}}
+</script>
+</head>
+<body>
+
+<header id="bar">
+  <a class="mark" href="../tools/" title="Back to xrprof tools">xrprof</a>
+  <h1>Splat Annotator</h1>
+  <p id="file" class="file">No splat loaded</p>
+  <div class="acts">
+    <button type="button" id="open" class="b">Open</button>
+    <button type="button" id="export" class="b" disabled>Export</button>
+    <button type="button" id="help" class="b ghost">Controls</button>
+  </div>
+  <input type="file" id="pick" hidden multiple accept=".ply,.spz,.splat,.ksplat,.sog,.zip,.rad,.json">
+</header>
+
+<div id="work">
+  <div id="stage">
+    <canvas id="view" aria-label="3D view of the splat"></canvas>
+    <div id="tags" aria-hidden="true"></div>
+
+    <div id="tools" role="toolbar" aria-label="Tools" aria-orientation="vertical">
+      <button type="button" data-tool="nav" aria-pressed="true" title="Look around (1)"><i data-ico="look"></i><span>Look</span></button>
+      <button type="button" data-tool="add" aria-pressed="false" title="Add a note: click a point on the splat (2)"><i data-ico="add"></i><span>Add</span></button>
+      <button type="button" data-tool="move" aria-pressed="false" title="Move the selected note: click a new point (3)"><i data-ico="move"></i><span>Move</span></button>
+      <hr>
+      <button type="button" data-act="frame" title="Fit the whole splat in view (F)"><i data-ico="frame"></i><span>Fit</span></button>
+      <button type="button" data-act="flip" title="Turn the splat the other way up (U)"><i data-ico="flip"></i><span>Flip</span></button>
+      <button type="button" data-act="labels" aria-pressed="false" title="Show every note's title (L)"><i data-ico="label"></i><span>Titles</span></button>
+    </div>
+
+    <div id="pad" role="group" aria-label="Move the camera">
+      <button type="button" data-hold="rotl" title="Rotate left (Left arrow)">Rot L</button>
+      <button type="button" data-hold="up" title="Raise the camera (E)">Raise</button>
+      <button type="button" data-hold="rotr" title="Rotate right (Right arrow)">Rot R</button>
+      <button type="button" data-hold="out" title="Zoom out">Zoom &minus;</button>
+      <button type="button" data-hold="down" title="Lower the camera (Q)">Lower</button>
+      <button type="button" data-hold="in" title="Zoom in">Zoom +</button>
+    </div>
+
+    <p id="hint" role="status"></p>
+    <p id="toast" role="status" hidden></p>
+
+    <div id="drop">
+      <div class="dropbox">
+        <p class="chan">CH 3D</p>
+        <h2>Drop a splat here</h2>
+        <p>.ply, .spz, .splat, .ksplat or .sog. It opens on this device and is not uploaded anywhere.</p>
+        <button type="button" id="choose" class="b big">Choose a file</button>
+        <p class="dim">Have notes already? Drop the notes file or an annotated splat the same way.</p>
+      </div>
+    </div>
+    <div id="busy" hidden><p id="busytext">Loading</p><div class="meter"><b id="busybar"></b></div></div>
+  </div>
+
+  <aside id="panel" aria-label="Notes">
+    <form id="editor" hidden autocomplete="off">
+      <div class="phead">
+        <h2 id="edhead">Note</h2>
+        <span id="edstate" class="state"></span>
+      </div>
+      <label for="f-title">Title</label>
+      <input id="f-title" type="text" maxlength="80" placeholder="Name this point">
+      <fieldset>
+        <legend>Colour tag</legend>
+        <div id="f-colors" class="swatches"></div>
+      </fieldset>
+      <label for="f-text">Note</label>
+      <textarea id="f-text" rows="5" placeholder="What should people notice here?"></textarea>
+      <fieldset>
+        <legend>Position</legend>
+        <p class="dim small">Drag the orb, or use Move and click a new point.</p>
+        <div class="rowb">
+          <button type="button" id="f-move" class="b ghost sm" aria-pressed="false">Move</button>
+          <button type="button" id="f-near" class="b ghost sm" title="Pull the orb toward the camera">Nearer</button>
+          <button type="button" id="f-far" class="b ghost sm" title="Push the orb away from the camera">Farther</button>
+        </div>
+      </fieldset>
+      <p id="edwarn" class="warn" hidden>Save or cancel this note first.</p>
+      <div class="rowb end">
+        <button type="submit" id="f-save" class="b">Save note</button>
+        <button type="button" id="f-cancel" class="b ghost">Cancel</button>
+        <button type="button" id="f-del" class="b ghost danger">Delete</button>
+      </div>
+    </form>
+
+    <section id="listwrap">
+      <div class="phead">
+        <h2>Notes <span id="count"></span></h2>
+        <span id="saved" class="state"></span>
+      </div>
+      <div id="filters" class="swatches small" role="group" aria-label="Show only one colour"></div>
+      <ol id="list"></ol>
+      <p id="empty" class="dim"></p>
+    </section>
+  </aside>
+</div>
+
+<dialog id="dlg-help">
+  <h2>Controls</h2>
+  <dl class="keys">
+    <div><dt>Rotate</dt><dd>Drag &middot; one finger &middot; arrow keys</dd></div>
+    <div><dt>Slide (pan)</dt><dd>Right-drag or Shift-drag &middot; two fingers</dd></div>
+    <div><dt>Zoom</dt><dd>Scroll wheel &middot; pinch</dd></div>
+    <div><dt>Fly</dt><dd>W A S D, hold Shift to go faster</dd></div>
+    <div><dt>Raise / lower</dt><dd>E / Q</dd></div>
+    <div><dt>Set the pivot</dt><dd>Double-click a point</dd></div>
+    <div><dt>Fit in view</dt><dd>F</dd></div>
+    <div><dt>Tools</dt><dd>1 look &middot; 2 add &middot; 3 move &middot; L titles &middot; U flip</dd></div>
+    <div><dt>Selected note</dt><dd>Enter saves from the title &middot; Esc cancels &middot; drag the orb to move it</dd></div>
+  </dl>
+  <form method="dialog"><button class="b">Close</button></form>
+</dialog>
+
+<dialog id="dlg-export">
+  <h2>Export</h2>
+  <ul class="exports">
+    <li>
+      <button type="button" class="b" data-export="ply">Annotated splat (.ply)</button>
+      <p>One file. The notes ride inside the splat file, which still opens in other splat software. Drop it here to get the notes back.</p>
+    </li>
+    <li>
+      <button type="button" class="b" data-export="zip">Splat + notes bundle (.zip)</button>
+      <p>One file holding the original splat and a notes file. Works for every format. Drop it here to reopen both.</p>
+    </li>
+    <li>
+      <button type="button" class="b" data-export="json">Notes only (.json)</button>
+      <p>A small file to send to someone who already has the splat, or to publish beside it on a website.</p>
+    </li>
+  </ul>
+  <p id="exmsg" class="dim" role="status"></p>
+  <form method="dialog"><button class="b ghost">Close</button></form>
+</dialog>
+
+<noscript><p style="padding:24px">This tool needs JavaScript.</p></noscript>
+<script type="module" src="app.js?v=1"></script>
+</body>
+</html>
