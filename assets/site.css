@@ -78,6 +78,9 @@ section>p,.lead,.stack>p{max-width:65ch}
 .grid.three{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
 .card{border:2px solid var(--ink);padding:16px;display:flex;flex-direction:column;gap:10px;min-width:0}
 .card.proj{gap:12px;padding:20px}
+.stars{list-style:none;padding:0;display:flex;flex-direction:column;gap:8px;font-family:var(--display);font-weight:700;font-size:18px;letter-spacing:.03em;line-height:1.25}
+.stars li{display:flex;align-items:flex-start;gap:10px}
+.stars svg{flex:none;width:20px;height:20px;margin-top:1px}
 .card.proj p{max-width:70ch}
 .card.feature{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:20px;align-items:start}
 .ph{background:var(--dither);border:2px solid var(--ink);display:grid;place-items:center;min-height:120px}
