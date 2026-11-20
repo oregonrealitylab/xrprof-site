@@ -81,7 +81,7 @@ section>p,.lead,.stack>p{max-width:65ch}
 .ph{background:var(--dither);border:2px solid var(--ink);display:grid;place-items:center;min-height:120px}
 .ph span{background:var(--water);padding:3px 9px;font-family:var(--display);font-size:14px;letter-spacing:.1em;text-transform:uppercase}
 .ph.wide{aspect-ratio:16/9;min-height:0}
-.portrait{width:100%;aspect-ratio:4/5;object-fit:cover;border:2px solid var(--ink)}
+.portrait{width:100%;height:auto;aspect-ratio:4/5;object-fit:cover;border:2px solid var(--ink);image-rendering:pixelated}
 .hero{display:grid;grid-template-columns:minmax(150px,230px) minmax(0,1fr);gap:26px;align-items:start}
 .tags{display:flex;flex-wrap:wrap;gap:6px}
 .tags span{font-family:var(--display);font-size:13px;letter-spacing:.08em;text-transform:uppercase;border:2px solid var(--ink);padding:0 7px}
