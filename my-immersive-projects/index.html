@@ -9,7 +9,7 @@
 <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,600;1,400&family=Pixelify+Sans:wght@500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../assets/site.css?v=30f85609">
+<link rel="stylesheet" href="../assets/site.css?v=56f33c50">
 </head>
 <body>
 <div class="tube" aria-hidden="true"></div>
@@ -32,13 +32,19 @@
     <h1>My Immersive Projects</h1>
     <p class="lead">Immersive storytelling in augmented and virtual reality, made with students, communities and partners such as National Geographic, Unity 3D, Snapchat, Meta, The Sea Turtle Conservancy and NOAA.</p>
 
+    <ul class="key" aria-label="Icon key">
+      <li><span class="kind"><svg viewBox="0 0 15 15" aria-hidden="true" shape-rendering="crispEdges"><path fill="currentColor" d="M0 4h15v1h-15zM0 5h7v1h-7zM8 5h7v1h-7zM1 6h5v1h-5zM9 6h5v1h-5zM1 7h5v1h-5zM9 7h5v1h-5zM2 8h3v1h-3zM10 8h3v1h-3z"/></svg></span>Wearable AR</li>
+      <li><span class="kind"><svg viewBox="0 0 15 15" aria-hidden="true" shape-rendering="crispEdges"><path fill="currentColor" d="M4 1h7v1h-7zM4 2h1v1h-1zM10 2h1v1h-1zM4 3h1v1h-1zM10 3h1v1h-1zM4 4h1v1h-1zM10 4h1v1h-1zM4 5h1v1h-1zM10 5h1v1h-1zM4 6h1v1h-1zM10 6h1v1h-1zM4 7h1v1h-1zM10 7h1v1h-1zM4 8h1v1h-1zM10 8h1v1h-1zM4 9h1v1h-1zM10 9h1v1h-1zM4 10h7v1h-7zM4 11h3v1h-3zM8 11h3v1h-3zM4 12h7v1h-7z"/></svg></span>Mobile AR</li>
+      <li><span class="kind"><svg viewBox="0 0 15 15" aria-hidden="true" shape-rendering="crispEdges"><path fill="currentColor" d="M2 3h11v1h-11zM1 4h13v1h-13zM0 5h15v1h-15zM0 6h3v1h-3zM5 6h5v1h-5zM12 6h3v1h-3zM0 7h2v1h-2zM6 7h3v1h-3zM13 7h2v1h-2zM0 8h2v1h-2zM6 8h3v1h-3zM13 8h2v1h-2zM0 9h3v1h-3zM5 9h5v1h-5zM12 9h3v1h-3zM0 10h15v1h-15zM1 11h6v1h-6zM8 11h6v1h-6zM2 12h4v1h-4zM9 12h4v1h-4z"/></svg></span>Virtual reality</li>
+    </ul>
+
     <section>
       <h2>Featured</h2>
       <article class="card proj">
-        <h3>Deep Contact</h3>
+        <div class="head"><h3>Deep Contact</h3><span class="kind" title="Wearable AR"><svg viewBox="0 0 15 15" aria-hidden="true" shape-rendering="crispEdges"><path fill="currentColor" d="M0 4h15v1h-15zM0 5h7v1h-7zM8 5h7v1h-7zM1 6h5v1h-5zM9 6h5v1h-5zM1 7h5v1h-5zM9 7h5v1h-5zM2 8h3v1h-3zM10 8h3v1h-3z"/></svg><span class="sr">Wearable AR</span></span></div>
         <ul class="stars">
           <li><svg viewBox="0 0 9 9" aria-hidden="true" shape-rendering="crispEdges"><path fill="currentColor" d="M4 0h1v2h-1zM3 2h3v1h-3zM0 3h9v1h-9zM1 4h7v1h-7zM2 5h5v2h-5zM1 7h2v1h-2zM6 7h2v1h-2zM1 8h1v1h-1zM7 8h1v1h-1z"/></svg><span>Live on the Specs lens store</span></li>
-          <li><svg viewBox="0 0 9 9" aria-hidden="true" shape-rendering="crispEdges"><path fill="currentColor" d="M4 0h1v2h-1zM3 2h3v1h-3zM0 3h9v1h-9zM1 4h7v1h-7zM2 5h5v2h-5zM1 7h2v1h-2zM6 7h2v1h-2zM1 8h1v1h-1zM7 8h1v1h-1z"/></svg><span>Save states, alternate endings and full replay</span></li>
+          <li><svg viewBox="0 0 9 9" aria-hidden="true" shape-rendering="crispEdges"><path fill="currentColor" d="M4 0h1v2h-1zM3 2h3v1h-3zM0 3h9v1h-9zM1 4h7v1h-7zM2 5h5v2h-5zM1 7h2v1h-2zM6 7h2v1h-2zM1 8h1v1h-1zM7 8h1v1h-1z"/></svg><span>1st place, Best New Lens, Snapchat x Lenslist ($14,000)</span></li>
         </ul>
         <p class="tags"><span>Augmented reality</span><span>Specs</span><span>Learn / Tabletop / Creative</span></p>
         <p>A marine biologist&rsquo;s first day aboard a deep-sea research facility turns sinister. The search for a rare octopus exposes the expedition&rsquo;s real purpose.</p>
@@ -53,9 +59,10 @@
       <div class="grid two">
         <!-- EDIT: copy an <article class="card"> block per project. To add artwork, put an <img> as the first thing inside the card. -->
         <article class="card">
-          <h3>Otter Rock: Beneath the Surface</h3>
+          <div class="head"><h3>Otter Rock: Beneath the Surface</h3><span class="kind" title="Mobile AR"><svg viewBox="0 0 15 15" aria-hidden="true" shape-rendering="crispEdges"><path fill="currentColor" d="M4 1h7v1h-7zM4 2h1v1h-1zM10 2h1v1h-1zM4 3h1v1h-1zM10 3h1v1h-1zM4 4h1v1h-1zM10 4h1v1h-1zM4 5h1v1h-1zM10 5h1v1h-1zM4 6h1v1h-1zM10 6h1v1h-1zM4 7h1v1h-1zM10 7h1v1h-1zM4 8h1v1h-1zM10 8h1v1h-1zM4 9h1v1h-1zM10 9h1v1h-1zM4 10h7v1h-7zM4 11h3v1h-3zM8 11h3v1h-3zM4 12h7v1h-7z"/></svg><span class="sr">Mobile AR</span></span></div>
           <ul class="stars">
             <li><svg viewBox="0 0 9 9" aria-hidden="true" shape-rendering="crispEdges"><path fill="currentColor" d="M4 0h1v2h-1zM3 2h3v1h-3zM0 3h9v1h-9zM1 4h7v1h-7zM2 5h5v2h-5zM1 7h2v1h-2zM6 7h2v1h-2zM1 8h1v1h-1zM7 8h1v1h-1z"/></svg><span>Webby honorable mention: Apps, Software, and Immersive</span></li>
+            <li><svg viewBox="0 0 9 9" aria-hidden="true" shape-rendering="crispEdges"><path fill="currentColor" d="M4 0h1v2h-1zM3 2h3v1h-3zM0 3h9v1h-9zM1 4h7v1h-7zM2 5h5v2h-5zM1 7h2v1h-2zM6 7h2v1h-2zM1 8h1v1h-1zM7 8h1v1h-1z"/></svg><span>AWE Auggie Award finalist, Best Societal Impact (2025)</span></li>
           </ul>
           <p class="tags"><span>Augmented reality</span><span>Phones and tablets</span><span>2025</span></p>
           <p>An augmented reality experience that helps people see the submerged Otter Rock Marine Reserve: its habitats and wildlife, and the reserve&rsquo;s boundaries and rules.</p>
@@ -63,7 +70,7 @@
           <p class="more"><a href="https://news.uoregon.edu/students-chart-otter-rock-marine-reserve-augmented-reality" rel="noopener">Read the University of Oregon story</a> <a href="https://www.snapchat.com/unlock/?type=SNAPCODE&amp;uuid=27303645ee274f8faad1bec4f299bf0f&amp;metadata=01" rel="noopener">Open the lens</a></p>
         </article>
         <article class="card">
-          <h3>Ko-Kwel: He Carries a Story</h3>
+          <div class="head"><h3>Ko-Kwel: He Carries a Story</h3><span class="kind" title="Wearable AR"><svg viewBox="0 0 15 15" aria-hidden="true" shape-rendering="crispEdges"><path fill="currentColor" d="M0 4h15v1h-15zM0 5h7v1h-7zM8 5h7v1h-7zM1 6h5v1h-5zM9 6h5v1h-5zM1 7h5v1h-5zM9 7h5v1h-5zM2 8h3v1h-3zM10 8h3v1h-3z"/></svg><span class="sr">Wearable AR</span></span></div>
           <ul class="stars">
             <li><svg viewBox="0 0 9 9" aria-hidden="true" shape-rendering="crispEdges"><path fill="currentColor" d="M4 0h1v2h-1zM3 2h3v1h-3zM0 3h9v1h-9zM1 4h7v1h-7zM2 5h5v2h-5zM1 7h2v1h-2zM6 7h2v1h-2zM1 8h1v1h-1zM7 8h1v1h-1z"/></svg><span>1st place, Spectacles Community Challenge #12</span></li>
             <li><svg viewBox="0 0 9 9" aria-hidden="true" shape-rendering="crispEdges"><path fill="currentColor" d="M4 0h1v2h-1zM3 2h3v1h-3zM0 3h9v1h-9zM1 4h7v1h-7zM2 5h5v2h-5zM1 7h2v1h-2zM6 7h2v1h-2zM1 8h1v1h-1zM7 8h1v1h-1z"/></svg><span>AWE Auggie Award finalist, Best Societal Impact</span></li>
@@ -74,37 +81,37 @@
           <p class="more"><a href="https://xrbazaar.com/p/zyYoSEBmuGrPLAbYsOJ3Yg" rel="noopener">See it on XR Bazaar</a> <a href="https://journalism.uoregon.edu/news/ko-kwel-indigenous-storytelling-snap-ar" rel="noopener">Read the University of Oregon story</a></p>
         </article>
         <article class="card">
-          <h3>Kick Game</h3>
+          <div class="head"><h3>Kick Game</h3><span class="kind" title="Wearable AR"><svg viewBox="0 0 15 15" aria-hidden="true" shape-rendering="crispEdges"><path fill="currentColor" d="M0 4h15v1h-15zM0 5h7v1h-7zM8 5h7v1h-7zM1 6h5v1h-5zM9 6h5v1h-5zM1 7h5v1h-5zM9 7h5v1h-5zM2 8h3v1h-3zM10 8h3v1h-3z"/></svg><span class="sr">Wearable AR</span></span></div>
           <p class="tags"><span>Augmented reality</span><span>Spectacles</span><span>2026</span></p>
           <p>An AR field goal simulator. Kick American football field goals in your real surroundings.</p>
           <p class="more"><a href="https://xrbazaar.com/p/kick_game" rel="noopener">See it on XR Bazaar</a></p>
         </article>
         <article class="card">
-          <h3>Bailar</h3>
+          <div class="head"><h3>Bailar</h3><span class="kind" title="Wearable AR"><svg viewBox="0 0 15 15" aria-hidden="true" shape-rendering="crispEdges"><path fill="currentColor" d="M0 4h15v1h-15zM0 5h7v1h-7zM8 5h7v1h-7zM1 6h5v1h-5zM9 6h5v1h-5zM1 7h5v1h-5zM9 7h5v1h-5zM2 8h3v1h-3zM10 8h3v1h-3z"/></svg><span class="sr">Wearable AR</span></span></div>
           <p class="tags"><span>Augmented reality</span><span>Specs</span><span>2026</span></p>
           <p>An augmented reality lens built in Lens Studio for the upcoming Specs device.</p>
           <p class="more"><a href="https://xrbazaar.com/p/bailar" rel="noopener">See it on XR Bazaar</a></p>
         </article>
         <article class="card">
-          <h3>Coyote PDX</h3>
+          <div class="head"><h3>Coyote PDX</h3><span class="kind" title="Wearable AR"><svg viewBox="0 0 15 15" aria-hidden="true" shape-rendering="crispEdges"><path fill="currentColor" d="M0 4h15v1h-15zM0 5h7v1h-7zM8 5h7v1h-7zM1 6h5v1h-5zM9 6h5v1h-5zM1 7h5v1h-5zM9 7h5v1h-5zM2 8h3v1h-3zM10 8h3v1h-3z"/></svg><span class="sr">Wearable AR</span></span></div>
           <p class="tags"><span>Augmented reality</span><span>Spectacles</span></p>
-          <p>A coyote coexistence tool.</p>
+          <p>A coyote coexistence tool, designed in collaboration with the Oregon Department of Fish and Wildlife and the Portland Urban Coyote Project.</p>
           <p class="more"><a href="https://www.spectacles.com/lens/374eab700dbb4d01b892581e23254c38?type=SNAPCODE&amp;metadata=01" rel="noopener">Open the lens</a></p>
         </article>
         <article class="card">
-          <h3>Project SHELL</h3>
+          <div class="head"><h3>Project SHELL</h3><span class="kind" title="Virtual reality"><svg viewBox="0 0 15 15" aria-hidden="true" shape-rendering="crispEdges"><path fill="currentColor" d="M2 3h11v1h-11zM1 4h13v1h-13zM0 5h15v1h-15zM0 6h3v1h-3zM5 6h5v1h-5zM12 6h3v1h-3zM0 7h2v1h-2zM6 7h3v1h-3zM13 7h2v1h-2zM0 8h2v1h-2zM6 8h3v1h-3zM13 8h2v1h-2zM0 9h3v1h-3zM5 9h5v1h-5zM12 9h3v1h-3zM0 10h15v1h-15zM1 11h6v1h-6zM8 11h6v1h-6zM2 12h4v1h-4zM9 12h4v1h-4z"/></svg><span class="sr">Virtual reality</span></span></div>
           <p class="tags"><span>Virtual reality</span><span>Meta Quest</span></p>
           <p>Simulating Habitat Experiences of Living Loggerheads: a virtual reality experience supported by The Sea Turtle Conservancy.</p>
           <p class="more"><a href="https://sidequestvr.com/app/34888/project-shell-2024" rel="noopener">Get it on SideQuest</a></p>
         </article>
         <article class="card">
-          <h3>Virtual Excursions for Science Learning</h3>
+          <div class="head"><h3>Virtual Excursions for Science Learning</h3><span class="kind" title="Virtual reality"><svg viewBox="0 0 15 15" aria-hidden="true" shape-rendering="crispEdges"><path fill="currentColor" d="M2 3h11v1h-11zM1 4h13v1h-13zM0 5h15v1h-15zM0 6h3v1h-3zM5 6h5v1h-5zM12 6h3v1h-3zM0 7h2v1h-2zM6 7h3v1h-3zM13 7h2v1h-2zM0 8h2v1h-2zM6 8h3v1h-3zM13 8h2v1h-2zM0 9h3v1h-3zM5 9h5v1h-5zM12 9h3v1h-3zM0 10h15v1h-15zM1 11h6v1h-6zM8 11h6v1h-6zM2 12h4v1h-4zM9 12h4v1h-4z"/></svg><span class="sr">Virtual reality</span></span></div>
           <p class="tags"><span>Virtual world</span><span>HTC VIVERSE</span></p>
           <p>Virtual field trips for science learning.</p>
           <p class="more"><a href="https://worlds.viverse.com/zh-TW/Gynja5v" rel="noopener">Enter the world</a></p>
         </article>
         <article class="card">
-          <h3>Hope for Haiti: A Portal to Positive Impacts</h3>
+          <div class="head"><h3>Hope for Haiti: A Portal to Positive Impacts</h3><span class="kind" title="Mobile AR"><svg viewBox="0 0 15 15" aria-hidden="true" shape-rendering="crispEdges"><path fill="currentColor" d="M4 1h7v1h-7zM4 2h1v1h-1zM10 2h1v1h-1zM4 3h1v1h-1zM10 3h1v1h-1zM4 4h1v1h-1zM10 4h1v1h-1zM4 5h1v1h-1zM10 5h1v1h-1zM4 6h1v1h-1zM10 6h1v1h-1zM4 7h1v1h-1zM10 7h1v1h-1zM4 8h1v1h-1zM10 8h1v1h-1zM4 9h1v1h-1zM10 9h1v1h-1zM4 10h7v1h-7zM4 11h3v1h-3zM8 11h3v1h-3zM4 12h7v1h-7z"/></svg><span class="sr">Mobile AR</span></span></div>
           <p class="tags"><span>Augmented reality</span><span>Snapchat</span></p>
           <p>A Snapchat lens made with Hope for Haiti.</p>
           <p class="more"><a href="https://www.snapchat.com/lens/186150607753481fa7a94d6566223e69?type=SNAPCODE&amp;metadata=01" rel="noopener">Open the lens</a></p>
@@ -141,6 +148,6 @@
     <p>&copy; 2026 Daniel Pimentel. xrprof.org</p>
   </footer>
 </div>
-<script src="../assets/site.js?v=30f85609"></script>
+<script src="../assets/site.js?v=56f33c50"></script>
 </body>
 </html>
