@@ -161,13 +161,21 @@ address{font-style:normal}
 .vclose:focus-visible{outline:2px dashed var(--ink);outline-offset:4px}
 .vscreen{position:relative;aspect-ratio:16/9;background:#000;border:2px solid var(--ink);border-radius:18px;overflow:hidden;
   box-shadow:0 0 46px rgba(220,255,235,.12)}
-.vscreen iframe{position:absolute;inset:0;width:100%;height:100%;border:0;filter:url(#bitvideo)}
-.plain .vscreen iframe{filter:grayscale(1) brightness(1.7) contrast(1.5)}       /* browsers that cannot run the full filter */
-.raw .vscreen iframe{filter:none}
-.vlines{position:absolute;inset:0;pointer-events:none;
+.vscreen{isolation:isolate}
+/* The 1-bit look, built only from plain CSS filters so it also works on a player from another
+   site: the picture goes grey, a dither pattern is laid over it at half strength, and extreme
+   contrast then snaps every pixel to black or white. Two tint layers bring those to the site's tones. */
+.vfx{position:absolute;inset:0;filter:contrast(60)}
+.vfx iframe{position:absolute;inset:0;width:100%;height:100%;border:0;filter:grayscale(1) brightness(var(--lift,1.15))}
+.vfx::after{content:"";position:absolute;inset:0;pointer-events:none;opacity:.5;image-rendering:pixelated;background:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAIAAADZF8uwAAAATklEQVR4XmPk4OBgAIP6+noIY+HChWgiTBA+fkCUIpb9+/dDjGlsbIQwMEWIMokoRYwWFhZofklMTKSZ7xi/f/+O5rv4+Hg0EaIcTpQiACe3GFqY/vHVAAAAAElFTkSuQmCC) 0 0/12px 12px}
+.vscreen::before,.vscreen::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:1}
+.vscreen::before{background:var(--water);mix-blend-mode:lighten}
+.vscreen::after{background:var(--ink);mix-blend-mode:darken}
+.vbox{--lift:1.6}                               /* the bio video is dimly lit, so it gets more lift */
+.raw .vfx,.raw .vfx iframe{filter:none}
+.raw .vfx::after,.raw .vscreen::before,.raw .vscreen::after{display:none}
+.vlines{position:absolute;inset:0;pointer-events:none;z-index:2;
   background:radial-gradient(ellipse at center,transparent 60%,rgba(0,0,0,.5) 100%),repeating-linear-gradient(to bottom,transparent 0 4px,rgba(0,0,0,.3) 4px 5px)}
-.plain .vlines{background:radial-gradient(ellipse at center,transparent 60%,rgba(0,0,0,.5) 100%),
-  repeating-linear-gradient(to bottom,transparent 0 4px,rgba(0,0,0,.45) 4px 5px),repeating-linear-gradient(to right,transparent 0 4px,rgba(0,0,0,.45) 4px 5px)}
 .raw .vlines{display:none}
 .vfoot label{display:flex;align-items:center;gap:8px;cursor:pointer}
 .vfoot input{accent-color:var(--ink);width:16px;height:16px}
