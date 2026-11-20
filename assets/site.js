@@ -60,9 +60,9 @@
         '<feTile result="grid"/>'+
         '<feComposite in="SourceGraphic" in2="grid" operator="in"/>'+
         '<feMorphology operator="dilate" radius="'+h+'"/>'+
-        /* 2. black and white, with a little more contrast */
+        /* 2. black and white, with the shadows lifted so dark footage stays readable */
         '<feColorMatrix type="matrix" values=".3 .59 .11 0 0 .3 .59 .11 0 0 .3 .59 .11 0 0 0 0 0 1 0"/>'+
-        '<feComponentTransfer result="grey"><feFuncR type="linear" slope="1.35" intercept="-.12"/><feFuncG type="linear" slope="1.35" intercept="-.12"/><feFuncB type="linear" slope="1.35" intercept="-.12"/></feComponentTransfer>'+
+        '<feComponentTransfer result="grey"><feFuncR type="table" tableValues="0 .26 .5 .67 .77 .84 .89 .93 .96 .98 1"/><feFuncG type="table" tableValues="0 .26 .5 .67 .77 .84 .89 .93 .96 .98 1"/><feFuncB type="table" tableValues="0 .26 .5 .67 .77 .84 .89 .93 .96 .98 1"/></feComponentTransfer>'+
         /* 3. ordered dither: add a tiled 4x4 threshold map, then snap every pixel to on or off */
         '<feImage href="'+BAYER+'" x="0" y="0" width="'+4*P+'" height="'+4*P+'" preserveAspectRatio="none" result="map"/>'+
         '<feTile in="map" result="maps"/>'+
