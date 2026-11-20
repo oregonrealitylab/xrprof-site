@@ -126,6 +126,7 @@ h3.sub{font-size:16px;letter-spacing:.1em;text-transform:uppercase;color:var(--d
 .tags span{font-family:var(--display);font-size:13px;letter-spacing:.08em;text-transform:uppercase;border:2px solid var(--ink);padding:0 7px}
 .kv{display:flex;flex-direction:column}
 .kv>div{display:grid;grid-template-columns:minmax(96px,170px) minmax(0,1fr);gap:4px 18px;padding:10px 0;border-bottom:2px dotted var(--ink)}
+address{font-style:normal}
 .kv dt{font-family:var(--display);font-weight:700;letter-spacing:.06em;text-transform:uppercase}
 .links{list-style:none;padding:0;display:flex;flex-wrap:wrap;gap:8px 22px;font-family:var(--display);font-size:18px;letter-spacing:.04em}
 .highs{list-style:none;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px;counter-reset:high}
