@@ -100,6 +100,11 @@ h3.sub{font-size:16px;letter-spacing:.1em;text-transform:uppercase;color:var(--d
 .card .row{align-items:center}
 .art{border:2px solid var(--ink);max-width:504px;width:100%;align-self:center;animation:poweron .6s cubic-bezier(.2,.8,.2,1) both}
 .art[hidden]{display:none}
+.art.vid{max-width:none;border:0;display:flex;flex-direction:column;gap:8px}
+.art.vid[hidden]{display:none}
+.art.vid .vscreen{border-radius:12px}
+.art.vid .vfoot{font-size:13px}
+.grid.two .card:has(.expand[aria-expanded="true"]){grid-column:1/-1}        /* an open card takes the full row */
 .grid.two:has(.expand[aria-expanded="true"]){align-items:start}
 .art img{width:100%;height:auto;image-rendering:pixelated}
 .card .more{align-items:center;margin-top:auto;display:flex;flex-wrap:wrap;gap:6px 18px}

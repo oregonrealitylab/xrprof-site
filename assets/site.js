@@ -41,8 +41,10 @@
    link simply opens YouTube. */
 (function(){
   var links=document.querySelectorAll('a[data-video]');
-  if(!links.length)return;
-  var P=window.innerWidth<640?3:5;           /* size of one picture pixel, in CSS px (odd): finer on phones */
+  var inline=document.querySelector('.art[data-embed]');
+  if(!links.length&&!inline)return;
+  /* size of one picture pixel, in CSS px (odd): finer on phones and for players set inside a page */
+  var P=(inline||window.innerWidth<640)?3:5;
   var BAYER=P===3?'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAIAAADZF8uwAAAATklEQVR4XmPk4OBgAIP6+noIY+HChWgiTBA+fkCUIpb9+/dDjGlsbIQwMEWIMokoRYwWFhZofklMTKSZ7xi/f/+O5rv4+Hg0EaIcTpQiACe3GFqY/vHVAAAAAElFTkSuQmCC':'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAIAAAAC64paAAAAU0lEQVR4XmPk4OBgQAL19fXI3IULF+KRZUKWIxUMUc0s+/fvR/ZqY2MjMhe/7BD1M0XOZrSwsMCThhITE0dTGApg/P79O54UFh8fj0eWoqgaopoBP+UYaitGiE0AAAAASUVORK5CYII='; /* 4x4 dither threshold map, pre-scaled to that pixel size */
   var safari=/^((?!chrome|android|crios|fxios).)*safari/i.test(navigator.userAgent);
   var box=null, last=null;
@@ -71,6 +73,13 @@
       '</filter>';
     document.body.appendChild(el);
   }
+
+  /* Shared with the project cards (expand.js): makes sure the filter exists and says whether
+     this browser gets the simpler fallback look. */
+  window.xrBitVideo=function(){
+    if(!document.getElementById('bitvideo'))filter();
+    return {plain:safari};
+  };
 
   function close(){
     if(!box)return;
@@ -118,8 +127,24 @@
   document.addEventListener('keydown',function(e){if(e.key==='Escape')close();});
 })();
 
-/* Project cards: the Expand button opens the card to show that project's artwork. */
+/* Project cards: the Expand button opens the card. A card with a video (data-embed on its
+   panel) gets the player, drawn through the same filter as the pop-up video, with a switch
+   to see the original picture. Other cards show their artwork. Collapsing removes the player,
+   which also stops the sound. */
 (function(){
+  function player(art){
+    var bit=window.xrBitVideo?window.xrBitVideo():{plain:false};
+    var id='raw-'+art.id, title=art.getAttribute('data-title');
+    art.classList.toggle('plain',bit.plain);
+    art.innerHTML=
+      '<div class="vscreen"><iframe allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>'+
+      '<div class="vlines" aria-hidden="true"></div></div>'+
+      '<div class="vfoot"><label><input type="checkbox" id="'+id+'"> Show the original picture</label>'+
+      '<a class="vout" rel="noopener">Open the video</a></div>';
+    var f=art.querySelector('iframe'); f.title=title+' video'; f.src=art.getAttribute('data-embed');
+    art.querySelector('.vout').href=art.getAttribute('data-href');
+    art.querySelector('input').addEventListener('change',function(){art.classList.toggle('raw',this.checked);});
+  }
   document.querySelectorAll('button.expand').forEach(function(b){
     var art=document.getElementById(b.getAttribute('aria-controls'));
     if(!art)return;
@@ -128,7 +153,10 @@
       var open=b.getAttribute('aria-expanded')!=='true';
       b.setAttribute('aria-expanded',open?'true':'false');
       b.children[0].textContent=open?'Collapse ':'Expand ';
-      b.children[1].textContent=open?'−':'+';
+      b.children[1].textContent=open?'\u2212':'+';
+      if(art.hasAttribute('data-embed')){
+        if(open)player(art); else{art.innerHTML='';art.classList.remove('raw');}
+      }
       art.hidden=!open;
     });
   });
