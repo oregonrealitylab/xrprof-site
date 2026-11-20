@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Teleprompter</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/* Layout idea: one screen. Control strip on top, black reading stage filling the rest,
+   amber cue markers at the reading line, thin progress strip at the bottom.
+   Single dark theme by choice: a prompter is read off a dark screen. */
+:root {
+  color-scheme: dark;
+  --stage: #08090b;
+  --panel: #16181d;
+  --panel-2: #20232a;
+  --ink: #f5f2e9;
+  --dim: #9a9ca3;
+  --line: #2e323b;
+  --cue: #ffb224;
+  --font: "Atkinson Hyperlegible", "Verdana", "Segoe UI", system-ui, sans-serif;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+body {
+  background: var(--stage); color: var(--ink);
+  font-family: var(--font); font-size: 15px;
+  display: flex; flex-direction: column; overflow: hidden;
+}
+button, input, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--cue); outline-offset: 2px; }
+
+/* ---------- control strip ---------- */
+#bar {
+  background: var(--panel); border-bottom: 1px solid var(--line);
+  padding: 10px 16px; display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center;
+}
+body.clean #bar, body.clean #foot { display: none; }
+.group { display: flex; gap: 8px; align-items: center; }
+.seg { display: flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.seg button { background: transparent; border: 0; padding: 7px 14px; cursor: pointer; color: var(--dim); }
+.seg button[aria-pressed="true"] { background: var(--cue); color: #1a1200; font-weight: 700; }
+.btn {
+  background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px;
+  padding: 7px 12px; cursor: pointer; white-space: nowrap;
+}
+.btn:hover { border-color: var(--dim); }
+.btn.primary { background: var(--cue); border-color: var(--cue); color: #1a1200; font-weight: 700; min-width: 86px; }
+.btn[aria-pressed="true"] { border-color: var(--cue); color: var(--cue); }
+.btn:disabled { opacity: .4; cursor: default; }
+.sliders { display: flex; flex-wrap: wrap; gap: 8px 18px; flex: 1 1 420px; }
+.slider { display: grid; grid-template-columns: auto auto; gap: 2px 8px; flex: 1 1 150px; min-width: 140px; }
+.slider label { color: var(--dim); font-size: 13px; }
+.slider output { font-size: 13px; text-align: right; font-variant-numeric: tabular-nums; }
+.slider input { grid-column: 1 / -1; width: 100%; accent-color: var(--cue); margin: 0; }
+
+/* ---------- stage ---------- */
+#stage { position: relative; flex: 1 1 auto; min-height: 0; overflow: hidden; background: var(--stage); }
+#mirror { position: absolute; inset: 0; }
+#mirror.flip { transform: scaleX(-1); }
+#text {
+  position: absolute; left: 50%; top: 35%;
+  width: 80%; margin-left: -40%;
+  white-space: pre-wrap; overflow-wrap: break-word;
+  font-size: 56px; line-height: 1.4; font-weight: 700;
+  will-change: transform;
+}
+.cue { position: absolute; top: 35%; width: 0; height: 0; pointer-events: none;
+  border-top: 9px solid transparent; border-bottom: 9px solid transparent; margin-top: -9px; }
+.cue.l { left: 4px; border-left: 13px solid var(--cue); }
+.cue.r { right: 4px; border-right: 13px solid var(--cue); }
+.fade { position: absolute; left: 0; right: 0; pointer-events: none; }
+.fade.t { top: 0; height: 22%; background: linear-gradient(var(--stage), transparent); }
+.fade.b { bottom: 0; height: 22%; background: linear-gradient(transparent, var(--stage)); }
+#hold { position: absolute; right: 16px; bottom: 16px; display: flex; flex-direction: column; gap: 8px; }
+#hold button, #showbar {
+  width: 52px; height: 52px; border-radius: 50%; border: 1px solid var(--line);
+  background: rgba(32,35,42,.85); cursor: pointer; font-size: 20px;
+  touch-action: none; user-select: none; -webkit-user-select: none;
+}
+#hold button.on { background: var(--cue); color: #1a1200; border-color: var(--cue); }
+#showbar { position: absolute; left: 16px; bottom: 16px; width: auto; height: auto; border-radius: 8px;
+  padding: 7px 12px; font-size: 13px; opacity: .55; display: none; }
+#showbar:hover { opacity: 1; }
+body.clean #showbar { display: block; }
+
+/* ---------- footer ---------- */
+#foot { background: var(--panel); border-top: 1px solid var(--line); }
+#prog { height: 3px; background: var(--line); }
+#prog i { display: block; height: 100%; width: 0; background: var(--cue); }
+#status { display: flex; flex-wrap: wrap; gap: 4px 20px; justify-content: space-between;
+  padding: 7px 16px; color: var(--dim); font-size: 13px; font-variant-numeric: tabular-nums; }
+kbd { border: 1px solid var(--line); border-radius: 4px; padding: 0 5px; background: var(--panel-2); color: var(--ink); font-family: inherit; }
+
+/* ---------- script editor ---------- */
+#editor { position: absolute; inset: 0; background: rgba(8,9,11,.92); display: none;
+  padding: 16px; align-items: center; justify-content: center; }
+#editor.open { display: flex; }
+#sheet { background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
+  width: min(760px, 100%); height: min(620px, 100%); padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+#sheet h2 { margin: 0; font-size: 22px; }
+#sheet p { margin: 0; color: var(--dim); }
+#script { flex: 1 1 auto; min-height: 0; resize: none; background: var(--stage); border: 1px solid var(--line);
+  border-radius: 8px; padding: 12px; line-height: 1.5; font-size: 16px; }
+#sheet .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; }
+#count { color: var(--dim); font-size: 13px; font-variant-numeric: tabular-nums; }
+</style>
+</head>
+<body>
+
+<div id="bar">
+  <div class="group">
+    <div class="seg" role="group" aria-label="Scroll mode">
+      <button id="modeManual" type="button" aria-pressed="true">Manual</button>
+      <button id="modeAuto" type="button" aria-pressed="false">Auto</button>
+    </div>
+    <button id="play" class="btn primary" type="button" disabled>Start</button>
+    <button id="restart" class="btn" type="button">Back to top</button>
+  </div>
+
+  <div class="sliders">
+    <div class="slider">
+      <label for="speed">Scroll speed</label><output id="speedOut" for="speed"></output>
+      <input id="speed" type="range" min="5" max="150" step="1" value="30">
+    </div>
+    <div class="slider">
+      <label for="size">Text size</label><output id="sizeOut" for="size"></output>
+      <input id="size" type="range" min="20" max="180" step="2" value="56">
+    </div>
+    <div class="slider">
+      <label for="width">Text width</label><output id="widthOut" for="width"></output>
+      <input id="width" type="range" min="30" max="96" step="2" value="80">
+    </div>
+    <div class="slider">
+      <label for="lead">Line spacing</label><output id="leadOut" for="lead"></output>
+      <input id="lead" type="range" min="1" max="2.4" step="0.05" value="1.4">
+    </div>
+  </div>
+
+  <div class="group">
+    <button id="edit" class="btn" type="button">Edit script</button>
+    <button id="flip" class="btn" type="button" aria-pressed="false">Mirror</button>
+    <button id="full" class="btn" type="button">Full screen</button>
+    <button id="hide" class="btn" type="button">Hide controls</button>
+  </div>
+</div>
+
+<div id="stage">
+  <div id="mirror"><div id="text"></div></div>
+  <div class="fade t"></div><div class="fade b"></div>
+  <div class="cue l"></div><div class="cue r"></div>
+  <div id="hold">
+    <button id="holdUp" type="button" aria-label="Hold to scroll back">&#9650;</button>
+    <button id="holdDown" type="button" aria-label="Hold to scroll forward">&#9660;</button>
+  </div>
+  <button id="showbar" type="button">Show controls</button>
+
+  <div id="editor" role="dialog" aria-modal="true" aria-labelledby="edTitle">
+    <div id="sheet">
+      <h2 id="edTitle">Teleprompter</h2>
+      <p>Paste your script below, then press <kbd>Enter</kbd> to start. <kbd>Shift</kbd> + <kbd>Enter</kbd> adds a new line.</p>
+      <textarea id="script" spellcheck="false" placeholder="Paste or type your script here."></textarea>
+      <div class="row">
+        <span id="count"></span>
+        <span class="group">
+          <button id="clear" class="btn" type="button">Clear</button>
+          <button id="cancel" class="btn" type="button">Cancel</button>
+          <button id="load" class="btn primary" type="button">Start</button>
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="foot">
+  <div id="prog"><i></i></div>
+  <div id="status">
+    <span id="hint"></span>
+    <span id="time"></span>
+  </div>
+</div>
+
+<script>
+(function () {
+  var SAMPLE = '';
+
+  var $ = function (id) { return document.getElementById(id); };
+  var text = $('text'), stage = $('stage'), mirror = $('mirror');
+  var KEY = 'teleprompter-v1';
+
+  var s = { mode: 'manual', speed: 30, size: 56, width: 80, lead: 1.4, flip: false, script: SAMPLE };
+  try {
+    var saved = JSON.parse(localStorage.getItem(KEY) || 'null');
+    if (saved) for (var k in s) if (saved[k] !== undefined && typeof saved[k] === typeof s[k]) s[k] = saved[k];
+  } catch (e) {}
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(s)); } catch (e) {} }
+
+  var y = 0, max = 0, held = 0, playing = false, last = 0;
+
+  function linePx() { return s.size * s.lead; }
+  function pxPerSec() { return s.speed / 60 * linePx(); }
+
+  function applyLook() {
+    text.style.fontSize = s.size + 'px';
+    text.style.lineHeight = s.lead;
+    text.style.width = s.width + '%';
+    text.style.marginLeft = (-s.width / 2) + '%';
+    mirror.classList.toggle('flip', s.flip);
+    $('flip').setAttribute('aria-pressed', s.flip);
+    $('speedOut').textContent = s.speed + ' lines/min';
+    $('sizeOut').textContent = s.size + ' px';
+    $('widthOut').textContent = s.width + '% of screen';
+    $('leadOut').textContent = s.lead.toFixed(2);
+    measure();
+  }
+
+  // Keep the reader's place when the layout changes.
+  function measure() {
+    var frac = max > 0 ? y / max : 0;
+    max = text.offsetHeight;
+    y = Math.min(max, frac * max);
+    draw();
+  }
+
+  function fmt(sec) {
+    sec = Math.max(0, Math.round(sec));
+    return Math.floor(sec / 60) + ':' + String(sec % 60).padStart(2, '0');
+  }
+
+  function draw() {
+    text.style.transform = 'translate3d(0,' + (-y) + 'px,0)';
+    var frac = max > 0 ? y / max : 0;
+    $('prog').firstElementChild.style.width = (frac * 100) + '%';
+    var linesFit = Math.max(1, Math.floor(stage.clientHeight / linePx()));
+    $('time').textContent = Math.round(frac * 100) + '% read · ' +
+      fmt((max - y) / pxPerSec()) + ' left at this speed · ' + linesFit + ' lines on screen';
+  }
+
+  function applyMode() {
+    var auto = s.mode === 'auto';
+    $('modeAuto').setAttribute('aria-pressed', auto);
+    $('modeManual').setAttribute('aria-pressed', !auto);
+    $('play').disabled = !auto;
+    if (!auto) playing = false;
+    $('play').textContent = playing ? 'Pause' : (y > 0 && y < max ? 'Resume' : 'Start');
+    $('hint').innerHTML = auto
+      ? '<kbd>Space</kbd> start or pause · hold <kbd>&uarr;</kbd> <kbd>&darr;</kbd> to jump back or ahead · <kbd>&larr;</kbd> <kbd>&rarr;</kbd> speed · <kbd>H</kbd> hide controls'
+      : 'Hold <kbd>&darr;</kbd> to move forward, <kbd>&uarr;</kbd> to go back · <kbd>&larr;</kbd> <kbd>&rarr;</kbd> speed · <kbd>H</kbd> hide controls';
+  }
+
+  function setPlaying(on) {
+    if (s.mode !== 'auto') return;
+    if (on && y >= max) y = 0;
+    playing = on;
+    applyMode();
+  }
+
+  function frame(t) {
+    var dt = Math.min((t - last) / 1000, 0.1); last = t;
+    var v = 0;
+    if (held) v = held * pxPerSec() * (s.mode === 'auto' ? 3 : 1);
+    else if (s.mode === 'auto' && playing) v = pxPerSec();
+    if (v) {
+      y = Math.max(0, Math.min(max, y + v * dt));
+      if (y >= max && playing && !held) { playing = false; applyMode(); }
+      draw();
+    }
+    requestAnimationFrame(frame);
+  }
+
+  function setScript(str) {
+    s.script = str;
+    text.textContent = str.trim() ? str : 'No script loaded. Press Edit script to add one.';
+    y = 0; max = 0; playing = false;
+    measure(); applyMode(); save();
+  }
+
+  /* ----- controls ----- */
+  function bindSlider(id, key) {
+    var el = $(id);
+    el.value = s[key];
+    el.addEventListener('input', function () { s[key] = parseFloat(el.value); applyLook(); save(); });
+    el.addEventListener('pointerup', function () { el.blur(); });
+  }
+  bindSlider('speed', 'speed'); bindSlider('size', 'size');
+  bindSlider('width', 'width'); bindSlider('lead', 'lead');
+
+  function setMode(m) { s.mode = m; held = 0; applyMode(); save(); }
+  $('modeManual').onclick = function () { setMode('manual'); };
+  $('modeAuto').onclick = function () { setMode('auto'); };
+  $('play').onclick = function () { setPlaying(!playing); };
+  $('restart').onclick = function () { y = 0; playing = false; draw(); applyMode(); };
+  $('flip').onclick = function () { s.flip = !s.flip; applyLook(); save(); };
+  function toggleClean() { document.body.classList.toggle('clean'); measure(); }
+  $('hide').onclick = toggleClean; $('showbar').onclick = toggleClean;
+  $('full').onclick = function () {
+    try {
+      var p = document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen();
+      if (p && p.catch) p.catch(function () {});
+    } catch (e) {}
+  };
+
+  // Mouse clicks should not leave focus on a button, or Space would press it again.
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest && e.target.closest('button');
+    if (b && e.detail > 0) b.blur();
+  });
+
+  /* ----- hold buttons (touch and mouse) ----- */
+  function bindHold(id, dir) {
+    var el = $(id);
+    function on(e) { e.preventDefault(); held = dir; el.classList.add('on'); try { el.setPointerCapture(e.pointerId); } catch (x) {} }
+    function off() { if (held === dir) held = 0; el.classList.remove('on'); }
+    el.addEventListener('pointerdown', on);
+    el.addEventListener('pointerup', off);
+    el.addEventListener('pointercancel', off);
+    el.addEventListener('lostpointercapture', off);
+    el.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+  }
+  bindHold('holdUp', -1); bindHold('holdDown', 1);
+
+  /* ----- keyboard ----- */
+  var editor = $('editor'), area = $('script');
+  function editing() { return editor.classList.contains('open'); }
+
+  document.addEventListener('keydown', function (e) {
+    if (editing()) { if (e.key === 'Escape') closeEditor(); return; }
+    var tag = e.target.tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    switch (e.key) {
+      case 'ArrowDown': e.preventDefault(); held = 1; break;
+      case 'ArrowUp': e.preventDefault(); held = -1; break;
+      case 'ArrowRight': case 'ArrowLeft':
+        e.preventDefault();
+        s.speed = Math.max(5, Math.min(150, s.speed + (e.key === 'ArrowRight' ? 2 : -2)));
+        $('speed').value = s.speed; applyLook(); save(); break;
+      case ' ':
+        if (tag === 'BUTTON') return;
+        e.preventDefault(); if (!e.repeat) setPlaying(!playing); break;
+      case 'Home': e.preventDefault(); $('restart').onclick(); break;
+      case 'h': case 'H': toggleClean(); break;
+    }
+  });
+  document.addEventListener('keyup', function (e) {
+    if (e.key === 'ArrowDown' && held === 1) held = 0;
+    if (e.key === 'ArrowUp' && held === -1) held = 0;
+  });
+  window.addEventListener('blur', function () { held = 0; });
+
+  /* ----- editor ----- */
+  function countWords() {
+    var n = (area.value.trim().match(/\S+/g) || []).length;
+    $('count').textContent = n + ' words · about ' + fmt(n / 150 * 60) + ' spoken at 150 words a minute';
+  }
+  function openEditor() { playing = false; held = 0; applyMode(); area.value = s.script; countWords(); $('cancel').hidden = !s.script.trim(); editor.classList.add('open'); area.focus(); }
+  function closeEditor() { editor.classList.remove('open'); }
+  $('edit').onclick = openEditor;
+  $('cancel').onclick = closeEditor;
+  $('clear').onclick = function () { area.value = ''; countWords(); area.focus(); };
+  $('load').onclick = function () {
+    if (!area.value.trim()) { area.focus(); return; }
+    setScript(area.value); closeEditor();
+  };
+  area.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); $('load').onclick(); }
+  });
+  area.addEventListener('input', countWords);
+
+  /* ----- start ----- */
+  text.textContent = s.script.trim() ? s.script : 'No script loaded. Press Edit script to add one.';
+  applyLook(); applyMode();
+  openEditor();
+  if (window.ResizeObserver) { new ResizeObserver(measure).observe(text); new ResizeObserver(draw).observe(stage); }
+  else window.addEventListener('resize', measure);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(measure);
+  requestAnimationFrame(function (t) { last = t; requestAnimationFrame(frame); });
+})();
+</script>
+</body>
+</html>
