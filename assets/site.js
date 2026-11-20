@@ -127,8 +127,8 @@
     b.addEventListener('click',function(){
       var open=b.getAttribute('aria-expanded')!=='true';
       b.setAttribute('aria-expanded',open?'true':'false');
-      b.firstChild.textContent=open?'Collapse ':'Expand ';
-      b.lastChild.textContent=open?'−':'+';
+      b.children[0].textContent=open?'Collapse ':'Expand ';
+      b.children[1].textContent=open?'−':'+';
       art.hidden=!open;
     });
   });
