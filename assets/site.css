@@ -102,6 +102,28 @@ section>p,.lead,.stack>p{max-width:65ch}
 .at a{margin-left:10px}
 .big{font-family:var(--display);font-weight:700;font-size:clamp(22px,5.6vw,40px);overflow-wrap:anywhere}
 
+/* Video pop-up: the YouTube player on a small set, drawn through the 1-bit filter (see site.js). */
+.video-open{overflow:hidden}
+.vbox{position:fixed;inset:0;z-index:20;display:grid;place-items:center;padding:calc(var(--edge) + 14px);background:rgba(0,0,0,.86)}
+.vset{width:min(900px,100%);display:flex;flex-direction:column;gap:10px;animation:poweron .7s cubic-bezier(.2,.8,.2,1) both}
+.vbar,.vfoot{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 16px;font-family:var(--display);
+  font-size:15px;letter-spacing:.08em;text-transform:uppercase}
+.vclose{font:inherit;letter-spacing:inherit;text-transform:inherit;color:var(--water);background:var(--ink);border:2px solid var(--ink);padding:4px 12px;cursor:pointer}
+.vclose:hover{background:var(--water);color:var(--ink)}
+.vclose:focus-visible{outline:2px dashed var(--ink);outline-offset:4px}
+.vscreen{position:relative;aspect-ratio:16/9;background:#000;border:2px solid var(--ink);border-radius:18px;overflow:hidden;
+  box-shadow:0 0 46px rgba(220,255,235,.12)}
+.vscreen iframe{position:absolute;inset:0;width:100%;height:100%;border:0;filter:url(#bitvideo)}
+.plain .vscreen iframe{filter:grayscale(1) contrast(2.4) brightness(1.05)}       /* browsers that cannot run the full filter */
+.raw .vscreen iframe{filter:none}
+.vlines{position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(ellipse at center,transparent 60%,rgba(0,0,0,.5) 100%),repeating-linear-gradient(to bottom,transparent 0 4px,rgba(0,0,0,.3) 4px 5px)}
+.plain .vlines{background:radial-gradient(ellipse at center,transparent 60%,rgba(0,0,0,.5) 100%),
+  repeating-linear-gradient(to bottom,transparent 0 4px,rgba(0,0,0,.45) 4px 5px),repeating-linear-gradient(to right,transparent 0 4px,rgba(0,0,0,.45) 4px 5px)}
+.raw .vlines{display:none}
+.vfoot label{display:flex;align-items:center;gap:8px;cursor:pointer}
+.vfoot input{accent-color:var(--ink);width:16px;height:16px}
+
 /* Footer */
 .foot{display:flex;flex-direction:column;gap:12px;color:var(--dim);font-size:14px}
 .swell{height:8px;background:var(--dither);-webkit-mask:repeating-linear-gradient(90deg,#000 0 12px,transparent 12px 20px);mask:repeating-linear-gradient(90deg,#000 0 12px,transparent 12px 20px)}
@@ -120,4 +142,4 @@ section>p,.lead,.stack>p{max-width:65ch}
   .buoys a[aria-current="page"]{background:none;color:var(--ink);text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:3px}
   .buoys a[aria-current="page"] .disc{box-shadow:0 0 0 2px var(--water),0 0 0 4px var(--ink),0 0 0 6px var(--water),0 0 0 8px var(--ink)}
 }
-@media (prefers-reduced-motion:reduce){.page,.tv-off .page,.tv-again .page{animation:none}.chan::before{animation:none}.disc{transition:none}}
+@media (prefers-reduced-motion:reduce){.page,.tv-off .page,.tv-again .page,.vset{animation:none}.chan::before{animation:none}.disc{transition:none}}

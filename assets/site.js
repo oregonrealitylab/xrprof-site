@@ -34,3 +34,86 @@
     setTimeout(function(){location.href=a.href;},440);
   });
 })();
+
+/* Links marked data-video="<YouTube id>" open the video in a pop-up set on this page.
+   The picture is the normal YouTube player with a live filter over it: chunky pixels, then a
+   1-bit ordered dither in the site's two tones. Sound is untouched. Without JavaScript the
+   link simply opens YouTube. */
+(function(){
+  var links=document.querySelectorAll('a[data-video]');
+  if(!links.length)return;
+  var P=window.innerWidth<640?3:5;           /* size of one picture pixel, in CSS px (odd): finer on phones */
+  var BAYER=P===3?'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAIAAADZF8uwAAAATklEQVR4XmPk4OBgAIP6+noIY+HChWgiTBA+fkCUIpb9+/dDjGlsbIQwMEWIMokoRYwWFhZofklMTKSZ7xi/f/+O5rv4+Hg0EaIcTpQiACe3GFqY/vHVAAAAAElFTkSuQmCC':'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAIAAAAC64paAAAAU0lEQVR4XmPk4OBgQAL19fXI3IULF+KRZUKWIxUMUc0s+/fvR/ZqY2MjMhe/7BD1M0XOZrSwsMCThhITE0dTGApg/P79O54UFh8fj0eWoqgaopoBP+UYaitGiE0AAAAASUVORK5CYII='; /* 4x4 dither threshold map, pre-scaled to that pixel size */
+  var safari=/^((?!chrome|android|crios|fxios).)*safari/i.test(navigator.userAgent);
+  var box=null, last=null;
+
+  function filter(){
+    var s='http://www.w3.org/2000/svg', h=(P-1)/2;
+    var el=document.createElementNS(s,'svg');
+    el.setAttribute('width','0'); el.setAttribute('height','0'); el.setAttribute('aria-hidden','true');
+    el.style.position='absolute';
+    el.innerHTML=
+      '<filter id="bitvideo" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">'+
+        /* 1. chunky pixels: keep one sample per PxP cell, then grow it to fill the cell */
+        '<feFlood x="'+h+'" y="'+h+'" width="1" height="1"/>'+
+        '<feComposite width="'+P+'" height="'+P+'"/>'+
+        '<feTile result="grid"/>'+
+        '<feComposite in="SourceGraphic" in2="grid" operator="in"/>'+
+        '<feMorphology operator="dilate" radius="'+h+'"/>'+
+        /* 2. black and white, with a little more contrast */
+        '<feColorMatrix type="matrix" values=".3 .59 .11 0 0 .3 .59 .11 0 0 .3 .59 .11 0 0 0 0 0 1 0"/>'+
+        '<feComponentTransfer result="grey"><feFuncR type="linear" slope="1.35" intercept="-.12"/><feFuncG type="linear" slope="1.35" intercept="-.12"/><feFuncB type="linear" slope="1.35" intercept="-.12"/></feComponentTransfer>'+
+        /* 3. ordered dither: add a tiled 4x4 threshold map, then snap every pixel to on or off */
+        '<feImage href="'+BAYER+'" x="0" y="0" width="'+4*P+'" height="'+4*P+'" preserveAspectRatio="none" result="map"/>'+
+        '<feTile in="map" result="maps"/>'+
+        '<feComposite in="grey" in2="maps" operator="arithmetic" k1="0" k2="1" k3="1" k4="-.5"/>'+
+        '<feComponentTransfer><feFuncR type="discrete" tableValues=".047 .949"/><feFuncG type="discrete" tableValues=".059 .961"/><feFuncB type="discrete" tableValues=".043 .933"/><feFuncA type="discrete" tableValues="1 1"/></feComponentTransfer>'+
+      '</filter>';
+    document.body.appendChild(el);
+  }
+
+  function close(){
+    if(!box)return;
+    box.remove(); box=null;                  /* removing the player also stops the sound */
+    document.documentElement.classList.remove('video-open');
+    if(last)last.focus();
+  }
+
+  function open(a){
+    last=a;
+    var id=a.getAttribute('data-video'), title=a.getAttribute('data-title')||'Video';
+    if(!document.getElementById('bitvideo'))filter();
+    box=document.createElement('div');
+    box.className='vbox'+(safari?' plain':'');
+    box.setAttribute('role','dialog'); box.setAttribute('aria-modal','true'); box.setAttribute('aria-label',title);
+    box.innerHTML=
+      '<div class="vset">'+
+        '<div class="vbar"><span class="vname"></span><button type="button" class="vclose">Close &times;</button></div>'+
+        '<div class="vscreen">'+
+          '<iframe allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>'+
+          '<div class="vlines" aria-hidden="true"></div>'+
+        '</div>'+
+        '<div class="vfoot"><label><input type="checkbox" id="vraw"> Show the original picture</label>'+
+          '<a class="vout" rel="noopener">Open on YouTube</a></div>'+
+      '</div>';
+    box.querySelector('.vname').textContent=title;
+    var frame=box.querySelector('iframe');
+    frame.title=title;
+    frame.src='https://www.youtube-nocookie.com/embed/'+encodeURIComponent(id)+'?autoplay=1&rel=0&playsinline=1';
+    box.querySelector('.vout').href=a.href;
+    box.querySelector('#vraw').addEventListener('change',function(){box.classList.toggle('raw',this.checked);});
+    box.querySelector('.vclose').addEventListener('click',close);
+    box.addEventListener('click',function(e){if(e.target===box)close();});
+    document.body.appendChild(box);
+    document.documentElement.classList.add('video-open');
+    box.querySelector('.vclose').focus();
+  }
+
+  links.forEach(function(a){
+    a.addEventListener('click',function(e){
+      if(e.button||e.metaKey||e.ctrlKey||e.shiftKey||e.altKey)return;
+      e.preventDefault(); open(a);
+    });
+  });
+  document.addEventListener('keydown',function(e){if(e.key==='Escape')close();});
+})();
