@@ -89,6 +89,11 @@ section>p,.lead,.stack>p{max-width:65ch}
 .kv>div{display:grid;grid-template-columns:minmax(96px,170px) minmax(0,1fr);gap:4px 18px;padding:10px 0;border-bottom:2px dotted var(--ink)}
 .kv dt{font-family:var(--display);font-weight:700;letter-spacing:.06em;text-transform:uppercase}
 .links{list-style:none;padding:0;display:flex;flex-wrap:wrap;gap:8px 22px;font-family:var(--display);font-size:18px;letter-spacing:.04em}
+.highs{list-style:none;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px;counter-reset:high}
+.highs li{counter-increment:high;border:2px solid var(--ink);padding:16px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.highs li::before{content:counter(high,decimal-leading-zero);font-family:var(--display);font-weight:700;font-size:15px;letter-spacing:.14em;
+  align-self:flex-start;background:var(--ink);color:var(--water);padding:0 7px}
+.highs p:last-child{margin-top:auto}
 .pubs,.courses{list-style:none;padding:0;display:flex;flex-direction:column}
 .pubs li,.courses li{display:grid;grid-template-columns:minmax(72px,110px) minmax(0,1fr);gap:6px 18px;padding:14px 0;border-bottom:2px dotted var(--ink)}
 .courses li>div{display:flex;flex-direction:column;gap:8px}
