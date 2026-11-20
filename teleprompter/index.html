@@ -105,6 +105,36 @@ kbd { border: 1px solid var(--line); border-radius: 4px; padding: 0 5px; backgro
   border-radius: 8px; padding: 12px; line-height: 1.5; font-size: 16px; }
 #sheet .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; }
 #count { color: var(--dim); font-size: 13px; font-variant-numeric: tabular-nums; }
+/* ---------- camera and recording ---------- */
+:root { --rec: #ff4d4d; }
+[hidden] { display: none !important; }
+#editor { z-index: 10; }
+.btn.rec::before { content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 50%;
+  background: var(--rec); margin-right: 7px; }
+.btn.rec.live { border-color: var(--rec); color: var(--rec); }
+.btn.rec.live::before { border-radius: 2px; }
+#cam { position: absolute; top: 12px; right: 12px; z-index: 5; width: 176px;
+  display: flex; flex-direction: column; gap: 8px; }
+#view { display: block; width: 176px; height: 176px; object-fit: cover; transform: scaleX(-1);
+  border-radius: 10px; border: 1px solid var(--line); background: #000; }
+#cam.err #view, #cam.nopreview #view { display: none; }
+.camctl { display: flex; flex-direction: column; gap: 4px; background: rgba(22,24,29,.94);
+  border: 1px solid var(--line); border-radius: 10px; padding: 8px; font-size: 13px; }
+.camctl label { color: var(--dim); margin-top: 2px; }
+.camctl select { width: 100%; background: var(--panel-2); color: var(--ink); border: 1px solid var(--line);
+  border-radius: 6px; padding: 5px; font: inherit; }
+.camctl p { margin: 4px 0 0; }
+.camctl p:empty { display: none; }
+body.clean .camctl { display: none; }
+#save { text-align: center; text-decoration: none; white-space: normal; }
+#badge { position: absolute; top: 12px; left: 16px; z-index: 5; display: flex; gap: 8px; align-items: center;
+  background: rgba(8,9,11,.85); border: 1px solid var(--rec); border-radius: 999px; padding: 4px 12px;
+  font-variant-numeric: tabular-nums; }
+#badge i { width: 10px; height: 10px; border-radius: 50%; background: var(--rec); animation: blink 1.2s steps(2) infinite; }
+@keyframes blink { 50% { opacity: .25; } }
+@media (prefers-reduced-motion: reduce) { #badge i { animation: none; } }
+#countdown { position: absolute; inset: 0; z-index: 6; display: flex; align-items: center; justify-content: center;
+  font-size: min(40vh, 320px); font-weight: 700; color: var(--cue); background: rgba(8,9,11,.6); }
 </style>
 </head>
 <body>
@@ -117,6 +147,11 @@ kbd { border: 1px solid var(--line); border-radius: 4px; padding: 0 5px; backgro
     </div>
     <button id="play" class="btn primary" type="button" disabled>Start</button>
     <button id="restart" class="btn" type="button">Back to top</button>
+  </div>
+
+  <div class="group">
+    <button id="camBtn" class="btn" type="button" aria-pressed="false">Camera</button>
+    <button id="rec" class="btn rec" type="button">Record</button>
   </div>
 
   <div class="sliders">
@@ -155,6 +190,19 @@ kbd { border: 1px solid var(--line); border-radius: 4px; padding: 0 5px; backgro
     <button id="holdDown" type="button" aria-label="Hold to scroll forward">&#9660;</button>
   </div>
   <button id="showbar" type="button">Show controls</button>
+
+  <div id="cam" hidden>
+    <video id="view" autoplay muted playsinline></video>
+    <a id="save" class="btn primary" hidden>Save video</a>
+    <div class="camctl">
+      <button id="pv" class="btn" type="button">Hide preview</button>
+      <label for="camSel">Camera</label><select id="camSel"></select>
+      <label for="micSel">Microphone</label><select id="micSel"></select>
+      <p id="camMsg" role="status"></p>
+    </div>
+  </div>
+  <div id="badge" hidden><i></i><span>0:00</span></div>
+  <div id="countdown" hidden aria-live="assertive"></div>
 
   <div id="editor" role="dialog" aria-modal="true" aria-labelledby="edTitle">
     <div id="sheet">
@@ -245,8 +293,8 @@ kbd { border: 1px solid var(--line); border-radius: 4px; padding: 0 5px; backgro
     if (!auto) playing = false;
     $('play').textContent = playing ? 'Pause' : (y > 0 && y < max ? 'Resume' : 'Start');
     $('hint').innerHTML = auto
-      ? '<kbd>Space</kbd> start or pause · hold <kbd>&uarr;</kbd> <kbd>&darr;</kbd> to jump back or ahead · <kbd>&larr;</kbd> <kbd>&rarr;</kbd> speed · <kbd>H</kbd> hide controls'
-      : 'Hold <kbd>&darr;</kbd> to move forward, <kbd>&uarr;</kbd> to go back · <kbd>&larr;</kbd> <kbd>&rarr;</kbd> speed · <kbd>H</kbd> hide controls';
+      ? '<kbd>Space</kbd> start or pause · hold <kbd>&uarr;</kbd> <kbd>&darr;</kbd> to jump back or ahead · <kbd>&larr;</kbd> <kbd>&rarr;</kbd> speed · <kbd>R</kbd> record · <kbd>H</kbd> hide controls'
+      : 'Hold <kbd>&darr;</kbd> to move forward, <kbd>&uarr;</kbd> to go back · <kbd>&larr;</kbd> <kbd>&rarr;</kbd> speed · <kbd>R</kbd> record · <kbd>H</kbd> hide controls';
   }
 
   function setPlaying(on) {
@@ -327,7 +375,7 @@ kbd { border: 1px solid var(--line); border-radius: 4px; padding: 0 5px; backgro
   document.addEventListener('keydown', function (e) {
     if (editing()) { if (e.key === 'Escape') closeEditor(); return; }
     var tag = e.target.tagName;
-    if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
     if (e.ctrlKey || e.metaKey || e.altKey) return;
     switch (e.key) {
       case 'ArrowDown': e.preventDefault(); held = 1; break;
@@ -367,6 +415,167 @@ kbd { border: 1px solid var(--line); border-radius: 4px; padding: 0 5px; backgro
     if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); $('load').onclick(); }
   });
   area.addEventListener('input', countWords);
+
+  /* ----- camera and recording ----- */
+  var cam = $('cam'), view = $('view'), camSel = $('camSel'), micSel = $('micSel'),
+      recBtn = $('rec'), camBtn = $('camBtn'), camMsg = $('camMsg'), badge = $('badge'),
+      countEl = $('countdown'), saveEl = $('save'), pvBtn = $('pv');
+  var stream = null, recorder = null, chunks = [], recStart = 0, recTick = 0,
+      countTimer = 0, unsaved = false, saveUrl = '';
+  var dev = { cam: '', mic: '' };
+  try { var dv = JSON.parse(localStorage.getItem(KEY + '-dev') || 'null'); if (dv) dev = { cam: dv.cam || '', mic: dv.mic || '' }; } catch (e) {}
+  function canRecord() { return !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia && window.MediaRecorder); }
+
+  function camError(err) {
+    var n = err && err.name;
+    camMsg.textContent =
+      !canRecord() ? 'Recording needs a current browser and an https address.' :
+      n === 'NotAllowedError' ? 'Camera access is blocked. Allow the camera and microphone for this site in your browser, then press Camera again.' :
+      n === 'NotFoundError' ? 'No camera or microphone was found. Plug one in, then press Camera again.' :
+      n === 'NotReadableError' ? 'The camera is in use by another app. Close that app, then press Camera again.' :
+      'The camera could not start. ' + (err && err.message ? err.message : 'Press Camera to try again.');
+    cam.hidden = false; cam.classList.add('err');
+    camBtn.setAttribute('aria-pressed', 'false');
+  }
+
+  function stopStream() {
+    if (stream) stream.getTracks().forEach(function (t) { t.stop(); });
+    stream = null; view.srcObject = null;
+  }
+
+  function fill(sel, list, kind, word, track) {
+    var cur = track && track.getSettings ? track.getSettings().deviceId : '';
+    var n = 0;
+    sel.textContent = '';
+    list.forEach(function (d) {
+      if (d.kind !== kind) return;
+      n++;
+      var o = document.createElement('option');
+      o.value = d.deviceId; o.textContent = d.label || (word + ' ' + n);
+      if (d.deviceId === cur) o.selected = true;
+      sel.appendChild(o);
+    });
+  }
+  function listDevices() {
+    return navigator.mediaDevices.enumerateDevices().then(function (list) {
+      fill(camSel, list, 'videoinput', 'Camera', stream && stream.getVideoTracks()[0]);
+      fill(micSel, list, 'audioinput', 'Microphone', stream && stream.getAudioTracks()[0]);
+    }).catch(function () {});
+  }
+
+  function startCam(retried) {
+    if (!canRecord()) { camError(null); return Promise.resolve(false); }
+    stopStream();
+    var v = { width: { ideal: 1920 }, height: { ideal: 1080 } };
+    if (dev.cam) v.deviceId = { exact: dev.cam };
+    var a = dev.mic ? { deviceId: { exact: dev.mic } } : true;
+    return navigator.mediaDevices.getUserMedia({ video: v, audio: a }).then(function (st) {
+      stream = st; view.srcObject = st;
+      cam.hidden = false; cam.classList.remove('err'); camMsg.textContent = '';
+      camBtn.setAttribute('aria-pressed', 'true');
+      return listDevices().then(function () { return true; });
+    }).catch(function (err) {
+      // A remembered camera or microphone that is no longer plugged in: fall back to the default.
+      if (!retried && err && (err.name === 'OverconstrainedError' || err.name === 'NotFoundError') && (dev.cam || dev.mic)) {
+        dev = { cam: '', mic: '' };
+        return startCam(true);
+      }
+      camError(err);
+      return false;
+    });
+  }
+
+  function pickDevice() {
+    dev = { cam: camSel.value, mic: micSel.value };
+    try { localStorage.setItem(KEY + '-dev', JSON.stringify(dev)); } catch (e) {}
+    startCam();
+  }
+  camSel.addEventListener('change', pickDevice);
+  micSel.addEventListener('change', pickDevice);
+  if (canRecord() && navigator.mediaDevices.addEventListener) {
+    navigator.mediaDevices.addEventListener('devicechange', function () { if (stream) listDevices(); });
+  }
+
+  camBtn.onclick = function () {
+    if (stream) { stopStream(); cam.hidden = !unsaved; cam.classList.add('err'); camMsg.textContent = ''; camBtn.setAttribute('aria-pressed', 'false'); }
+    else startCam();
+  };
+  pvBtn.onclick = function () {
+    var off = cam.classList.toggle('nopreview');
+    pvBtn.textContent = off ? 'Show preview' : 'Hide preview';
+  };
+
+  function pickType() {
+    var t = ['video/mp4;codecs=avc1.42E01E,mp4a.40.2', 'video/mp4', 'video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm'];
+    for (var i = 0; i < t.length; i++) if (MediaRecorder.isTypeSupported(t[i])) return t[i];
+    return '';
+  }
+  function recState(st) { // 'idle', 'count' or 'rec'
+    recBtn.textContent = st === 'idle' ? 'Record' : st === 'count' ? 'Cancel' : 'Stop recording';
+    recBtn.classList.toggle('live', st === 'rec');
+    camSel.disabled = micSel.disabled = camBtn.disabled = st !== 'idle';
+    badge.hidden = st !== 'rec';
+  }
+  function cancelCount() { clearInterval(countTimer); countTimer = 0; countEl.hidden = true; recState('idle'); }
+  function countdown() {
+    var n = 3;
+    countEl.textContent = n; countEl.hidden = false; recState('count');
+    countTimer = setInterval(function () {
+      n--;
+      if (n > 0) { countEl.textContent = n; return; }
+      cancelCount(); beginRec();
+    }, 1000);
+  }
+  function beginRec() {
+    if (!stream) return;
+    var type = pickType();
+    try { recorder = type ? new MediaRecorder(stream, { mimeType: type }) : new MediaRecorder(stream); }
+    catch (e) { recorder = null; camError(e); return; }
+    chunks = [];
+    recorder.ondataavailable = function (e) { if (e.data && e.data.size) chunks.push(e.data); };
+    recorder.onstop = finishRec;
+    recorder.start(1000);
+    recStart = Date.now();
+    badge.lastElementChild.textContent = '0:00';
+    recTick = setInterval(function () { badge.lastElementChild.textContent = fmt((Date.now() - recStart) / 1000); }, 500);
+    recState('rec');
+    if (s.mode === 'auto' && !playing) setPlaying(true);
+  }
+  function finishRec() {
+    clearInterval(recTick);
+    var type = (recorder && recorder.mimeType) || (chunks[0] && chunks[0].type) || 'video/webm';
+    var blob = new Blob(chunks, { type: type.split(';')[0] });
+    var secs = (Date.now() - recStart) / 1000;
+    recorder = null; chunks = [];
+    if (saveUrl) URL.revokeObjectURL(saveUrl);
+    saveUrl = URL.createObjectURL(blob);
+    var d = new Date(), p2 = function (x) { return String(x).padStart(2, '0'); };
+    saveEl.href = saveUrl;
+    saveEl.download = 'teleprompter-' + d.getFullYear() + p2(d.getMonth() + 1) + p2(d.getDate()) + '-' +
+      p2(d.getHours()) + p2(d.getMinutes()) + (type.indexOf('mp4') > -1 ? '.mp4' : '.webm');
+    saveEl.textContent = 'Save video (' + fmt(secs) + ', ' + (blob.size / 1048576).toFixed(1) + ' MB)';
+    saveEl.hidden = false; unsaved = true;
+    recState('idle');
+    if (playing) setPlaying(false);
+  }
+  saveEl.addEventListener('click', function () { unsaved = false; });
+
+  function toggleRec() {
+    if (recorder) { if (recorder.state !== 'inactive') recorder.stop(); return; }
+    if (countTimer) { cancelCount(); return; }
+    (stream ? Promise.resolve(true) : startCam()).then(function (ok) { if (ok && !countTimer && !recorder) countdown(); });
+  }
+  recBtn.onclick = toggleRec;
+  document.addEventListener('keydown', function (e) {
+    if (editing() || e.ctrlKey || e.metaKey || e.altKey) return;
+    var tag = e.target.tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+    if ((e.key === 'r' || e.key === 'R') && !e.repeat) toggleRec();
+    if (e.key === 'Escape' && countTimer) cancelCount();
+  });
+  window.addEventListener('beforeunload', function (e) {
+    if (unsaved || recorder) { e.preventDefault(); e.returnValue = ''; }
+  });
 
   /* ----- start ----- */
   text.textContent = s.script.trim() ? s.script : 'No script loaded. Press Edit script to add one.';
