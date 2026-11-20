@@ -76,6 +76,9 @@ section>p,.lead,.stack>p{max-width:65ch}
 .btn.ghost:hover{background:var(--ink);color:var(--water)}
 .grid{display:grid;gap:18px}
 .grid.three{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+.grid.two{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+.card .more{margin-top:auto;display:flex;flex-wrap:wrap;gap:6px 18px}
+.card .stars{font-size:16px}
 .card{border:2px solid var(--ink);padding:16px;display:flex;flex-direction:column;gap:10px;min-width:0}
 .card.proj{gap:12px;padding:20px}
 .stars{list-style:none;padding:0;display:flex;flex-direction:column;gap:8px;font-family:var(--display);font-weight:700;font-size:18px;letter-spacing:.03em;line-height:1.25}
