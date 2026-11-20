@@ -139,6 +139,9 @@ address{font-style:normal}
 .highs li::before{content:counter(high,decimal-leading-zero);font-family:var(--display);font-weight:700;font-size:15px;letter-spacing:.14em;
   align-self:flex-start;background:var(--ink);color:var(--water);padding:0 7px}
 .highs p:last-child{margin-top:auto}
+.tools{list-style:none;padding:0;display:flex;flex-direction:column}
+.tools li{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:14px 28px;padding:18px 0;border-bottom:2px dotted var(--ink)}
+.tools li>div{flex:1 1 320px;display:flex;flex-direction:column;gap:8px;max-width:62ch}
 .pubs,.courses{list-style:none;padding:0;display:flex;flex-direction:column}
 .pubs li,.courses li{display:grid;grid-template-columns:minmax(72px,110px) minmax(0,1fr);gap:6px 18px;padding:14px 0;border-bottom:2px dotted var(--ink)}
 .courses li>div{display:flex;flex-direction:column;gap:8px}
@@ -182,7 +185,7 @@ address{font-style:normal}
   .kv>div,.pubs li,.courses li{grid-template-columns:1fr}
 }
 @media (max-width:460px){
-  .buoys{display:grid;grid-template-columns:repeat(5,1fr);width:100%;gap:6px}
+  .buoys{display:grid;grid-template-columns:repeat(3,1fr);width:100%;gap:6px}
   .buoys a{flex-direction:column;gap:7px;padding:3px 0;font-size:11px;letter-spacing:.02em;text-align:center;line-height:1.15;border-radius:8px}
   .buoys a[aria-current="page"]{background:none;color:var(--ink);text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:3px}
   .buoys a[aria-current="page"] .disc{box-shadow:0 0 0 2px var(--water),0 0 0 4px var(--ink),0 0 0 6px var(--water),0 0 0 8px var(--ink)}
