@@ -24,13 +24,13 @@
     polycam:   { n: "Polycam", u: "https://poly.cam/", d: "Walk around an object or person with a phone to capture it as a 3D model." },                              /* FILLED IN (deck: \"Example App\") */
     scaniverse:{ n: "Scaniverse", u: "https://scaniverse.com/", d: "Free phone app for 3D scans, including Gaussian splats." },                                       /* FILLED IN */
     g3d:       { n: "Google Search: View in 3D", u: "https://support.google.com/websearch/answer/9817187", d: "Search some animals and objects on a phone and place them in your space at life size. The list is shorter than it used to be." },
-    sketchfab: { n: "Sketchfab", u: "https://sketchfab.com/", d: "Large library of 3D models, many free to download, that can be viewed in AR from a phone." },
+    sketchfab: { n: "Sketchfab", u: "https://sketchfab.com/", d: "Large library of 3D models that can be viewed in AR from a phone. Downloads are moving to its sister site, Fab." },
     si3d:      { n: "Smithsonian 3D", u: "https://3d.si.edu/", d: "Scanned museum objects, fossils and artefacts to view and download." },                             /* FILLED IN */
     snaplens:  { n: "Snapchat Lenses", u: "https://www.snapchat.com/lens", d: "Thousands of ready-made AR filters, including educational ones, that open from a link or Snapcode." }, /* FILLED IN */
     tteffects: { n: "TikTok effects", u: "https://effecthouse.tiktok.com/", d: "AR effects learners may already use; search for a topic inside the app." },                  /* FILLED IN */
     stellarium:{ n: "Stellarium Mobile", u: "https://stellarium-labs.com/stellarium-mobile-plus/", d: "Hold a phone to the sky and see the stars and planets for your exact place and time." }, /* FILLED IN */
     peak:      { n: "PeakVisor", u: "https://peakvisor.com/", d: "Labels the mountains and landmarks in view based on where you are standing." },                      /* FILLED IN */
-    lensstudio:{ n: "Lens Studio", u: "https://ar.snap.com/lens-studio", d: "Free tool for making AR lenses for Snapchat and Spectacles. Templates cover faces, bodies, image markers and the world." },
+    lensstudio:{ n: "Lens Studio", u: "https://ar.snap.com/lens-studio", d: "Free tool for making AR lenses for Snapchat and for Snap's Spectacles and Specs AR glasses. Templates cover faces, bodies, image markers and the world." },
     effecthouse:{ n: "TikTok Effect House", u: "https://effecthouse.tiktok.com/", d: "Free tool for making AR effects for TikTok." },                                    /* FILLED IN (replaces Spark AR, which Meta shut down in January 2025) */
     artivive:  { n: "Artivive", u: "https://artivive.com/", d: "Upload an image and the video or 3D content it should trigger. No code." },
     mywebar:   { n: "MyWebAR", u: "https://mywebar.com/", d: "Build AR that opens in a phone's browser from a QR code. No app, no code." },
@@ -49,6 +49,16 @@
     delightex: { n: "Delightex Edu", u: "https://www.delightex.com/edu", d: "Formerly CoSpaces Edu. Build simple 3D worlds in a browser, with block coding, and view them in VR or AR." }, /* FILLED IN */
     thinglink: { n: "ThingLink", u: "https://www.thinglink.com/", d: "Turn your own 360 photos into a clickable virtual tour." },                                       /* FILLED IN */
     realitycp: { n: "Reality Composer Pro", u: "https://developer.apple.com/augmented-reality/tools/", d: "Apple's free tool for composing 3D scenes for Vision Pro, iPhone and iPad." }, /* FILLED IN */
+    /* ---- Added November 2026 after a fresh look at what is current. All FILLED IN: please review. ---- */
+    lenslist:  { n: "Lenslist", u: "https://lenslist.co/", d: "A curated directory of AR filters across Snapchat and TikTok, with monthly best-of lists. Search it for a lens on your topic." },
+    easylens:  { n: "Easy Lens by Snap", u: "https://easylens.snapchat.com/", d: "Describe a Snapchat lens in plain words and it is built for you. Works on the web, iPhone and Android. Users must be 13 or older." },
+    gac:       { n: "Google Arts & Culture: AR", u: "https://artsandculture.google.com/project/ar", d: "Hang life-size artworks on your wall, walk through a Pocket Gallery, and place 3D animals and objects in your space." },
+    merge:     { n: "Merge EDU and Merge Cube", u: "https://mergeedu.com/", d: "Learners hold a foam cube that turns into a 3D object on screen: a heart, a fossil, a planet. Free samples; the full library is a subscription." },
+    assemblr:  { n: "Assemblr EDU", u: "https://edu.assemblrworld.com/", d: "Thousands of ready-made 3D and AR lesson objects, plus a drag-and-drop editor for making your own." },
+    hyperscape:{ n: "Meta Horizon Hyperscape (beta)", u: "https://www.meta.com/help/quest/1088536553019177/", d: "Scan a real room with a Quest 3 or 3S and revisit it as a photorealistic place, shared by link. Only adults 18 and over can capture." },
+    marble:    { n: "Marble by World Labs", u: "https://marble.worldlabs.ai/", d: "Generates a 3D world you can walk through from a text prompt, a photo or a 360 panorama. Viewable in VR." },
+    gmapsxr:   { n: "Google Maps on Android XR", u: "https://blog.google/products/android/samsung-galaxy-xr", d: "On Samsung's Galaxy XR headset: explore cities and landmarks in 3D with Immersive View." },
+    horizon:   { n: "Meta Horizon (mobile app)", u: "https://horizon.meta.com/", d: "User-made social worlds. Meta made it mobile-first in 2026: it left the Quest store and only some existing worlds still open in VR, so test any world on your own devices first." },
     harvard:   { n: "Learning in the Metaverse: A Guide for Practitioners", u: "https://nextlevellab.gse.harvard.edu/files/2023/02/IntroductionLearningMetaverse-April2022-MeridianTreehouse.pdf", d: "Evidence-based strategies for educators, museum designers and decision makers." }, /* FILLED IN (deck: \"please see ____\") */
     georgian:  { n: "XR best practices report (Georgian College)", u: "https://fsc-ccf.ca/wp-content/uploads/2024/07/GeorgianCollegeDigitalTransformationBestPracticesv6.pdf", d: "Practical guidance on onboarding, safety, hygiene and when to avoid VR." } /* FILLED IN */
   };
@@ -230,9 +240,9 @@
       { t: "No, just scan to present information", go: "p3_meet", set: { need: "Scanning objects to learn about them", res: ["lens", "seek"] } }
     ] },
     p3_ar_do: { phase: 3, label: "AR should", q: "What do you want the AR app to do?", opts: [
-      { t: "Show 3D models", go: "p3_meet", set: { need: "Viewing 3D models at scale", res: ["g3d", "sketchfab", "si3d"] }, say: { tone: "ok",
+      { t: "Show 3D models", go: "p3_meet", set: { need: "Viewing 3D models at scale", res: ["gac", "merge", "sketchfab", "si3d", "g3d", "assemblr"] }, say: { tone: "ok",
         text: "AR is great for viewing 3D models at scale! Libraries like Sketchfab and Smithsonian 3D have models you can open on a smartphone." } },
-      { t: "Add a filter over the user or their environment", go: "p3_meet", set: { need: "AR filters", res: ["snaplens", "tteffects"] }, say: { tone: "ok",
+      { t: "Add a filter over the user or their environment", go: "p3_meet", set: { need: "AR filters", res: ["lenslist", "snaplens", "easylens", "tteffects"] }, say: { tone: "ok",
         text: "You may want to use AR filters that alter the way users see themselves and others." } },
       { t: "Show things based on the learner's location", go: "p3_meet", set: { need: "Location-based AR", res: ["stellarium", "peak", "lens"] }, say: { tone: "ok",
         text: "Location-based AR may help your learners get facts based on where they are." } }
@@ -244,12 +254,12 @@
       { t: "Examine 3D models together around a table", go: "p3_meet", set: { need: "Shared 3D models in mixed reality", res: ["jig", "metamr", "sketchfab"] } }
     ] },
     p3_vr_do: { phase: 3, label: "VR should", q: "Where should VR take your learners?", opts: [
-      { t: "To real places they cannot visit", sub: "virtual field trips", go: "p3_meet", set: { need: "Virtual field trips", res: ["ytvr", "wander", "metaedu"] } },
+      { t: "To real places they cannot visit", sub: "virtual field trips", go: "p3_meet", set: { need: "Virtual field trips", res: ["ytvr", "wander", "hyperscape", "gmapsxr", "metaedu"] } },
       { t: "Into a simulation to practise a procedure", go: "p3_meet", set: { need: "Practice simulations in VR", res: ["metaedu", "ytvr"] }, say: { tone: "warn",
         text: "Simulations are specific to a field, so search the store for your subject and try the app yourself first. Prefer apps where learners teleport instead of gliding, which reduces motion sickness.",
         brief: "Prefer VR apps that use teleporting over smooth movement to limit motion sickness." } },
-      { t: "Inside a concept or system", sub: "the body, space, a molecule", go: "p3_meet", set: { need: "Concept exploration in VR", res: ["metaedu", "ytvr", "wander"] } },
-      { t: "Into a blank space to create", go: "p3_meet", set: { need: "Creating in VR", res: ["openbrush", "gravity", "delightex"] } }
+      { t: "Inside a concept or system", sub: "the body, space, a molecule", go: "p3_meet", set: { need: "Concept exploration in VR", res: ["metaedu", "ytvr", "marble"] } },
+      { t: "Into a blank space to create", go: "p3_meet", set: { need: "Creating in VR", res: ["openbrush", "gravity", "delightex", "marble", "horizon"] } }
     ] },
     p3_meet: { phase: 3, label: "Existing content fits?", suggest: true, q: "Do any of the suggestions meet your needs?", opts: [
       { t: "Yes!", go: "end_content" },
@@ -283,11 +293,11 @@
   /* What Phase 4 recommends, by route and platform. EDIT freely. */
   var BUILD = {
     social: { title: "Make a lens or effect for an app learners already have",
-      text: "Lens Studio lets you create AR content for Snapchat. TikTok's Effect House does the same for TikTok. Meta closed Spark AR, its tool for Instagram and Facebook filters, in January 2025.",
-      AR: ["lensstudio", "effecthouse"] },
+      text: "Lens Studio lets you create AR content for Snapchat. TikTok's Effect House does the same for TikTok. If you are new to this, start with Easy Lens, which builds a Snapchat lens from a written description. Meta closed Spark AR, its tool for Instagram and Facebook filters, in January 2025.",
+      AR: ["easylens", "lensstudio", "effecthouse"] },
     nocode: { title: "Use a no-code platform",
       text: "For a one-off experience, build on a platform made for short XR experiences instead of making your own app.",
-      AR: ["artivive", "mywebar", "zapworks"], MR: ["figmin", "shapes", "lensstudio"], VR: ["delightex", "thinglink", "shapes"] },
+      AR: ["assemblr", "mywebar", "artivive", "zapworks"], MR: ["figmin", "shapes", "lensstudio"], VR: ["delightex", "marble", "thinglink", "hyperscape", "shapes"] },
     hire: { title: "Hire an XR developer",
       text: "Depending on the scope of your project, the funding required can vary significantly. Write a one-page description of what learners do, on which device and for how long, then ask two or three freelancers or small studios for estimates so you can compare. Prototype the idea without code first so everyone is quoting on the same thing.",   /* second and third sentences FILLED IN */
       AR: ["mywebar", "lensstudio"], MR: ["shapes"], VR: ["shapes"] },
