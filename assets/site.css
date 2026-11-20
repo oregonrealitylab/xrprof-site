@@ -93,7 +93,15 @@ h3.sub{font-size:16px;letter-spacing:.1em;text-transform:uppercase;color:var(--d
 .cover img{width:100%;height:auto;image-rendering:pixelated}
 .cover:hover{background:none}
 .cover:hover img,.cover:focus-visible img{filter:invert(1)}
-.card .more{margin-top:auto;display:flex;flex-wrap:wrap;gap:6px 18px}
+.expand{margin-left:auto;font-family:var(--display);font-weight:700;font-size:14px;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--ink);background:var(--water);border:2px solid var(--ink);padding:3px 10px;cursor:pointer;white-space:nowrap}
+.expand:hover,.expand[aria-expanded="true"]{background:var(--ink);color:var(--water)}
+.expand:focus-visible{outline:2px dashed var(--ink);outline-offset:4px}
+.card .row{align-items:center}
+.art{border:2px solid var(--ink);max-width:504px;width:100%;align-self:center;animation:poweron .6s cubic-bezier(.2,.8,.2,1) both}
+.art[hidden]{display:none}
+.art img{width:100%;height:auto;image-rendering:pixelated}
+.card .more{align-items:center;margin-top:auto;display:flex;flex-wrap:wrap;gap:6px 18px}
 .card .stars{font-size:16px}
 .card{border:2px solid var(--ink);padding:16px;display:flex;flex-direction:column;gap:10px;min-width:0}
 .card.proj{gap:12px;padding:20px}
@@ -172,4 +180,4 @@ h3.sub{font-size:16px;letter-spacing:.1em;text-transform:uppercase;color:var(--d
   .buoys a[aria-current="page"]{background:none;color:var(--ink);text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:3px}
   .buoys a[aria-current="page"] .disc{box-shadow:0 0 0 2px var(--water),0 0 0 4px var(--ink),0 0 0 6px var(--water),0 0 0 8px var(--ink)}
 }
-@media (prefers-reduced-motion:reduce){.page,.tv-off .page,.tv-again .page,.vset{animation:none}.chan::before{animation:none}.disc{transition:none}}
+@media (prefers-reduced-motion:reduce){.page,.tv-off .page,.tv-again .page,.vset,.art{animation:none}.chan::before{animation:none}.disc{transition:none}}

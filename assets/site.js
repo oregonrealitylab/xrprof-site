@@ -117,3 +117,19 @@
   });
   document.addEventListener('keydown',function(e){if(e.key==='Escape')close();});
 })();
+
+/* Project cards: the Expand button opens the card to show that project's artwork. */
+(function(){
+  document.querySelectorAll('button.expand').forEach(function(b){
+    var art=document.getElementById(b.getAttribute('aria-controls'));
+    if(!art)return;
+    b.hidden=false;
+    b.addEventListener('click',function(){
+      var open=b.getAttribute('aria-expanded')!=='true';
+      b.setAttribute('aria-expanded',open?'true':'false');
+      b.firstChild.textContent=open?'Collapse ':'Expand ';
+      b.lastChild.textContent=open?'−':'+';
+      art.hidden=!open;
+    });
+  });
+})();
