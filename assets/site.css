@@ -86,6 +86,13 @@ section>p,.lead,.stack>p{max-width:65ch}
 .key{list-style:none;padding:0;display:flex;flex-wrap:wrap;gap:10px 24px;font-family:var(--display);font-size:14px;letter-spacing:.08em;text-transform:uppercase}
 .key li{display:flex;align-items:center;gap:12px}
 .key .kind{margin:4px}
+h3.sub{font-size:16px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);margin-bottom:-8px}
+.card.alum{padding:0 0 16px}
+.card.alum>*:not(.cover){margin-left:16px;margin-right:16px}
+.cover{display:block;border-bottom:2px solid var(--ink)}
+.cover img{width:100%;height:auto;image-rendering:pixelated}
+.cover:hover{background:none}
+.cover:hover img,.cover:focus-visible img{filter:invert(1)}
 .card .more{margin-top:auto;display:flex;flex-wrap:wrap;gap:6px 18px}
 .card .stars{font-size:16px}
 .card{border:2px solid var(--ink);padding:16px;display:flex;flex-direction:column;gap:10px;min-width:0}
