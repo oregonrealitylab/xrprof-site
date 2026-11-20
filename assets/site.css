@@ -82,6 +82,12 @@ section>p,.lead,.stack>p{max-width:65ch}
 .ph span{background:var(--water);padding:3px 9px;font-family:var(--display);font-size:14px;letter-spacing:.1em;text-transform:uppercase}
 .ph.wide{aspect-ratio:16/9;min-height:0}
 .portrait{width:100%;height:auto;aspect-ratio:4/5;object-fit:cover;border:2px solid var(--ink);image-rendering:pixelated}
+.shot{position:relative}
+.play{position:absolute;right:10px;bottom:10px;width:46px;height:46px;border-radius:50%;display:grid;place-items:center;
+  background:var(--ink);color:var(--water);box-shadow:0 0 0 2px var(--water),0 0 0 4px var(--ink),0 0 0 6px var(--water);transition:box-shadow .45s ease}
+.play svg{width:27px;height:27px;display:block}
+.play:hover,.play:focus-visible{background:var(--ink);color:var(--water);
+  box-shadow:0 0 0 2px var(--water),0 0 0 4px var(--ink),0 0 0 6px var(--water),0 0 24px 8px rgba(242,245,238,.55)}
 .hero{display:grid;grid-template-columns:minmax(150px,230px) minmax(0,1fr);gap:26px;align-items:start}
 .tags{display:flex;flex-wrap:wrap;gap:6px}
 .tags span{font-family:var(--display);font-size:13px;letter-spacing:.08em;text-transform:uppercase;border:2px solid var(--ink);padding:0 7px}
@@ -132,7 +138,7 @@ section>p,.lead,.stack>p{max-width:65ch}
 @keyframes blink{50%{opacity:0}}
 @media (max-width:640px){
   .hero,.card.feature{grid-template-columns:1fr}
-  .portrait{max-width:230px}
+  .shot{max-width:230px}
   .buoys{gap:10px 12px}
   .kv>div,.pubs li,.courses li{grid-template-columns:1fr}
 }
