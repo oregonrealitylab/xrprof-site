@@ -217,6 +217,21 @@ html.win-open{overflow:hidden}
     </section>
 
     <!-- ============ Personnel ============ -->
+    <!-- ============ Target Specimen ============ -->
+    <section id="specimen">
+      <header class="dh">
+        <div class="rule"><span class="dia" aria-hidden="true"></span></div>
+        <h2>Target Specimen</h2>
+        <p class="sub">Octopus</p>
+      </header>
+      <!-- EDIT: one or two sentences introducing the octopus. -->
+      <p class="intro">[Introduce the octopus in a sentence or two.]</p>
+      <div class="viewer" id="v-oct">
+        <div class="frame"><div class="stage"><canvas width="240" height="180" tabindex="0" aria-label="Rotatable model of the octopus, swimming in a loop. Use the left and right arrow keys to turn it."></canvas></div></div>
+        <div class="vctl"><button type="button" class="mini" data-turn="-1">&#9664; Turn</button><span>Drag to rotate · tap a diamond</span><button type="button" class="mini" data-turn="1">Turn &#9654;</button></div>
+      </div>
+    </section>
+
     <section id="personnel">
       <header class="dh">
         <div class="rule"><span class="dia" aria-hidden="true"></span></div>
@@ -329,6 +344,21 @@ html.win-open{overflow:hidden}
   <div class="cols"><div class="slot"><span>Image 3:4</span></div>
   <div class="text"><p>[Name this part of the dart gun and say what it does.]</p></div></div>
 </template>
+<template id="file-oct-1" data-bar="Target Specimen // Octopus 01">
+  <h3>Octopus: 01</h3>
+  <div class="cols"><div class="slot"><span>Image 3:4</span></div>
+  <div class="text"><p>[Name this part of the octopus and say what is known about it.]</p></div></div>
+</template>
+<template id="file-oct-2" data-bar="Target Specimen // Octopus 02">
+  <h3>Octopus: 02</h3>
+  <div class="cols"><div class="slot"><span>Image 3:4</span></div>
+  <div class="text"><p>[Name this part of the octopus and say what is known about it.]</p></div></div>
+</template>
+<template id="file-oct-3" data-bar="Target Specimen // Octopus 03">
+  <h3>Octopus: 03</h3>
+  <div class="cols"><div class="slot"><span>Image 3:4</span></div>
+  <div class="text"><p>[Name this part of the octopus and say what is known about it.]</p></div></div>
+</template>
 <template id="file-p-flores" data-bar="Personnel // Dr. Flores">
   <h3>Dr. Flores</h3>
   <div class="cols"><div class="slot"><span>Portrait 3:4</span></div>
@@ -363,7 +393,8 @@ html.win-open{overflow:hidden}
 <script src="../assets/site.js?v=6f5cbb11"></script>
 <script src="dc-base.js?v=6f5cbb11"></script>  <!-- the research base mesh, converted from the game's own 3D model, on an octagonal base -->
 <script src="dc-sub.js?v=6f5cbb11"></script>
-<script src="dc-gun.js?v=6f5cbb11"></script>   <!-- the dart gun mesh, converted from the game's own 3D model -->   <!-- the submersible mesh, converted from the game's own 3D model -->
+<script src="dc-gun.js?v=6f5cbb11"></script>
+<script src="dc-octo.js?v=6f5cbb11"></script>  <!-- the octopus mesh and its swim loop, converted from the game's own animated 3D model -->   <!-- the dart gun mesh, converted from the game's own 3D model -->   <!-- the submersible mesh, converted from the game's own 3D model -->
 <script>
 (function(){
 'use strict';
@@ -939,6 +970,31 @@ try{if(window.DC_MESH&&DC_MESH.gun)MODELS.gun=meshModel(DC_MESH.gun,{s:98,cy:0,y
   fix:function(x,y,z){return [z,y,-x];},            /* turn the model so the barrel runs left to right */
   spots:[{p:[-.65,.25,-.02],file:'gun-1',label:MODELS.gun.spots[0].label},        /* the dart at the muzzle */
          {p:[.66,.52,0],file:'gun-2',label:MODELS.gun.spots[1].label}]});}catch(e){}       /* top of the turret body */
+/* The octopus is animated: besides the mesh, its file carries two bones and a weight for every
+   vertex, and one 3x4 matrix per bone for each of 37 poses of the swim loop. Each tick the
+   vertices are re-posed between the two nearest poses. */
+var OCTO_SPOTS=[7828,12275,14447];      /* vertices on the mantle, the side of the head and an arm */
+function pose(m,t){
+  var a=m.anim, f=(t*a.fps)%a.nf, f0=Math.floor(f), f1=(f0+1)%a.nf, u=f-f0, B=a.cur, M=a.M, n=a.nj*12, i, j;
+  for(i=0;i<n;i++)B[i]=M[f0*n+i]+(M[f1*n+i]-M[f0*n+i])*u;
+  var R=a.rest, W=a.jw, V=m.V;
+  for(i=0;i<V.length;i++){
+    var x=R[i*3], y=R[i*3+1], z=R[i*3+2], ja=W[i*3]*12, jb=W[i*3+1]*12, wa=W[i*3+2]/255, wb=1-wa, v=V[i];
+    for(j=0;j<3;j++)v[j]=wa*(B[ja+j*4]*x+B[ja+j*4+1]*y+B[ja+j*4+2]*z+B[ja+j*4+3])+wb*(B[jb+j*4]*x+B[jb+j*4+1]*y+B[jb+j*4+2]*z+B[jb+j*4+3]);
+  }
+}
+MODELS.oct={s:100,cy:0,yaw:.5,parts:[ball(0,.2,0,.4,.5,.4,.8)],spots:[]};          /* stand-in if the file fails to load */
+try{if(window.DC_MESH&&DC_MESH.octo)(function(d){
+  var m=meshModel(d,{s:80,cy:0,yaw:.5,fix:function(x,y,z){return [x,y,z];},spots:[]});
+  var bin=atob(d.b), u=new Uint8Array(bin.length), i; for(i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);
+  var o=d.nv*6+d.nt*6, mo=o+d.nv*3; mo+=(4-mo%4)%4;
+  m.anim={rest:new Int16Array(u.buffer,0,d.nv*3),jw:new Uint8Array(u.buffer,o,d.nv*3),M:new Float32Array(u.buffer,mo,d.nf*d.nj*12),nj:d.nj,nf:d.nf,fps:d.fps,cur:new Float32Array(d.nj*12)};
+  pose(m,0);
+  /* each diamond rides on one vertex, so it swims with the animal */
+  m.spots=[{v:OCTO_SPOTS[0],file:'oct-1',label:'Octopus: 01'},{v:OCTO_SPOTS[1],file:'oct-2',label:'Octopus: 02'},{v:OCTO_SPOTS[2],file:'oct-3',label:'Octopus: 03'}];
+  m.spots.forEach(function(s){s.p=m.V[s.v];});
+  MODELS.oct=m;
+})(DC_MESH.octo);}catch(e){}
 Object.keys(MODELS).forEach(function(key){
   var m=MODELS[key], V=[], F=[]; if(m.V)return;
   m.parts.forEach(function(p,pi){var o=V.length; p.v.forEach(function(q){V.push(q);}); p.f.forEach(function(q){F.push({i:q.map(function(n){return n+o;}),k:p.k,id:pi+1});});});
@@ -1031,9 +1087,9 @@ Viewer.prototype.draw=function(){
   }
 };
 
-var base=new Viewer($('v-base')), eq=new Viewer($('v-eq')), viewers=[base,eq];
-window.__dc={base:base,eq:eq};
-base.show('base'); eq.show('sub');
+var base=new Viewer($('v-base')), eq=new Viewer($('v-eq')), oct=new Viewer($('v-oct')), viewers=[base,eq,oct];
+window.__dc={base:base,eq:eq,oct:oct,pose:pose};
+base.show('base'); eq.show('sub'); oct.show('oct');
 [].forEach.call(document.querySelectorAll('[data-model]'),function(b){
   b.addEventListener('click',function(){
     [].forEach.call(document.querySelectorAll('[data-model]'),function(o){o.setAttribute('aria-pressed',o===b?'true':'false');});
@@ -1049,6 +1105,7 @@ function tick(now){
   viewers.forEach(function(v){
     if(!v.seen||root.classList.contains('gated'))return;
     if(!still&&now-v.touched>3500){v.yaw+=dt*.32; v.dirty=true;}        /* turns slowly until you take hold of it */
+    if(v.m.anim&&!still){pose(v.m,now/1000); v.dirty=true;}                 /* the octopus keeps swimming */
     if(v.dirty){v.draw(); v.dirty=false;}
   });
 }
