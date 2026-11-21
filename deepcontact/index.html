@@ -107,6 +107,30 @@ html.win-open{overflow:hidden}
 .term{font-size:14px;line-height:1.7;min-height:250px;white-space:pre-wrap;overflow-wrap:anywhere}
 .term .cur::after{content:"\2588";animation:blink 1s steps(1) infinite}
 .granted{display:block;margin-top:14px;font-family:var(--deco);font-size:clamp(38px,8vw,60px);line-height:1.1;letter-spacing:.08em;text-transform:uppercase;text-align:center;background:var(--ink);color:var(--water);padding:6px;animation:blink .5s steps(1) 3}
+/* ---------- Registration: camera, form, ID card ---------- */
+.cam{position:relative}
+.cam canvas{position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelated}
+.cam .cam-msg{position:relative}
+.cam .count{position:absolute;inset:0;display:grid;place-items:center;font-family:var(--deco);font-weight:400;font-size:120px;color:var(--ink);text-shadow:4px 4px 0 var(--water),-4px -4px 0 var(--water),4px -4px 0 var(--water),-4px 4px 0 var(--water)}
+.cam .count[hidden]{display:none}
+.cam.flash::after{content:"";position:absolute;inset:0;background:var(--ink)}
+.cam-row{display:flex;flex-wrap:wrap;gap:8px;font-family:var(--display);font-size:14px;letter-spacing:.1em;text-transform:uppercase}
+.cam-row .mini{padding:6px 12px}
+.id-row{justify-content:center;gap:16px}
+.fine{font-size:12.5px;line-height:1.5;color:var(--dim)}
+.reg form{gap:12px}
+.reg label{display:flex;flex-direction:column;gap:4px;font-family:var(--display);font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim)}
+.win [hidden]{display:none!important}
+.reg input:not([type=file]){font:inherit;font-size:16px;letter-spacing:0;text-transform:none;color:var(--ink);background:var(--water);border:2px solid var(--ink);border-radius:0;padding:7px 9px;width:100%;min-width:0}
+.reg input:focus-visible{outline:2px dashed var(--ink);outline-offset:3px}
+.reg label.mini{flex-direction:row;color:var(--ink);font-size:14px}
+.reg label.mini:focus-within{outline:2px dashed var(--ink);outline-offset:4px}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn:disabled:hover{background:var(--ink);color:var(--water)}
+.idcard{align-self:center;width:min(340px,100%);aspect-ratio:3/4;border:2px solid var(--ink);box-shadow:0 0 32px rgba(220,255,235,.16);overflow:hidden}
+.idcard img{display:block;width:100%;height:100%;image-rendering:pixelated}
+.idcard.print img{animation:print 1.8s steps(24) both}
+@keyframes print{from{clip-path:inset(0 0 100% 0)}to{clip-path:inset(0 0 0 0)}}
 .cta{display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center}
 .foot .mini{align-self:flex-start;font-family:var(--display);font-size:13px;letter-spacing:.1em;text-transform:uppercase}
 @media (max-width:700px){.hero{grid-template-columns:1fr}.hero .frame{max-width:340px}}
@@ -202,10 +226,10 @@ html.win-open{overflow:hidden}
           <h3>Quark</h3><p class="role">The robot</p>
           <button type="button" class="mini" data-file="p-quark">Open file</button>
         </article>
-        <article class="pcard">
-          <div class="slot"><span>Portrait 3:4</span></div>
+        <article class="pcard" id="you-card">
+          <div class="slot"><span>Your ID photo</span></div>
           <h3>Visiting Professor</h3><p class="role">You, the player</p>
-          <button type="button" class="mini" data-file="p-professor">Open file</button>
+          <button type="button" class="mini" id="register">Register</button>
         </article>
       </div>
     </section>
@@ -306,11 +330,6 @@ html.win-open{overflow:hidden}
   <h3>Quark</h3>
   <div class="cols"><div class="slot"><span>Portrait 3:4</span></div>
   <div class="text"><p>The robot.</p><p>[A short profile.]</p></div></div>
-</template>
-<template id="file-p-professor" data-bar="Personnel // Visiting Professor">
-  <h3>Visiting Professor</h3>
-  <div class="cols"><div class="slot"><span>Portrait 3:4</span></div>
-  <div class="text"><p>That is you.</p><p>[What the player is here to do.]</p></div></div>
 </template>
 <template id="file-c-pimentel" data-bar="Credits // Dr. Daniel Pimentel">
   <h3>Dr. Daniel Pimentel</h3>
@@ -467,6 +486,259 @@ function terminal(){
   step();
 }
 if(root.classList.contains('gated'))runGate();
+/* ================= Visiting Professor registration =================
+   The camera picture, the ID photo and the form never leave this browser: nothing is uploaded
+   or stored, and it is all forgotten when the page is closed or reloaded. */
+var PAL=[[12,15,13],[82,88,83],[160,166,159],[242,245,238]], PW=120, PH=160;
+var reg={photo:null,card:null,id:'',f:{name:'',spec:'',org:'',town:''}};
+
+/* Draw a camera frame or picture into a 120x160 canvas in the site's four tones. */
+function tone(g,src,sw,sh,flip,st){
+  var k=Math.max(PW/sw,PH/sh), w=sw*k, h=sh*k, i, v, c;
+  g.save(); if(flip){g.translate(PW,0); g.scale(-1,1);} g.drawImage(src,(PW-w)/2,(PH-h)/2,w,h); g.restore();
+  var im=g.getImageData(0,0,PW,PH), d=im.data, n=PW*PH, L=new Float32Array(n), hist=new Uint32Array(256);
+  for(i=0;i<n;i++){v=d[i*4]*.299+d[i*4+1]*.587+d[i*4+2]*.114; L[i]=v; hist[v|0]++;}
+  var lo=0, hi=255;
+  for(c=0,i=0;i<256;i++){c+=hist[i]; if(c>n*.02){lo=i;break;}}
+  for(c=0,i=255;i>=0;i--){c+=hist[i]; if(c>n*.02){hi=i;break;}}
+  if(hi-lo<48){c=(hi+lo)/2; lo=c-24; hi=c+24;}                      /* a flat, dim picture stays flat instead of turning to noise */
+  st.lo=st.lo==null?lo:st.lo+(lo-st.lo)*.2; st.hi=st.hi==null?hi:st.hi+(hi-st.hi)*.2;
+  for(i=0;i<n;i++){
+    v=(L[i]-st.lo)/(st.hi-st.lo); v=v<0?0:v>1?1:v; v=Math.pow(v,.9)*3;
+    var b=v|0, x=i%PW, y=(i/PW)|0;
+    if(b<3&&v-b>(B4[(y&3)*4+(x&3)]+.5)/16)b++;
+    var p=PAL[b]; d[i*4]=p[0]; d[i*4+1]=p[1]; d[i*4+2]=p[2]; d[i*4+3]=255;
+  }
+  g.putImageData(im,0,0);
+}
+
+/* Type lines into a terminal log, one character at a time. */
+function typeLog(log,lines,alive,done){
+  var li=0, ci=0, cur=document.createElement('span'); cur.className='cur'; log.appendChild(cur);
+  function put(s){cur.insertAdjacentText('beforebegin',s); var b=log.parentNode; if(b)b.scrollTop=b.scrollHeight;}
+  (function step(){
+    if(!alive())return;
+    if(li>=lines.length){cur.remove(); return done();}
+    var L=lines[li];
+    if(still){put(L[0]+(L[1]?' ...... '+L[1]:'')+'\n'); li++; return setTimeout(step,120);}
+    if(ci<L[0].length){put(L[0].charAt(ci++)); return setTimeout(step,12);}
+    if(L[1]&&ci<L[0].length+6){put(ci===L[0].length?' .':'.'); ci++; return setTimeout(step,80);}
+    put((L[1]?' '+L[1]:'')+'\n'); li++; ci=0; setTimeout(step,150);
+  })();
+}
+
+function fitText(g,s,max,size,min,font){              /* shrink, then trim, until the text fits its space */
+  for(;size>min;size-=1){g.font=font.replace('#',size+'px'); if(g.measureText(s).width<=max)return s;}
+  g.font=font.replace('#',min+'px');
+  while(s.length>1&&g.measureText(s+'...').width>max)s=s.slice(0,-1);
+  return s+'...';
+}
+function drawCard(){
+  var W=600, H=800, cv=document.createElement('canvas'); cv.width=W; cv.height=H;
+  var g=cv.getContext('2d'), cs=getComputedStyle(root), f=reg.f, i, x, y, s;
+  var deco='# '+(cs.getPropertyValue('--deco')||'serif'), disp='700 # '+(cs.getPropertyValue('--display')||'monospace'), mono='# '+(getComputedStyle(document.body).fontFamily||'monospace');
+  var INKC='rgb(242,245,238)', WAT='rgb(12,15,13)', DIM='rgb(160,166,159)';
+  g.fillStyle=WAT; g.fillRect(0,0,W,H);
+  g.strokeStyle=INKC; g.lineWidth=4; g.strokeRect(10,10,W-20,H-20); g.lineWidth=2; g.strokeRect(20,20,W-40,H-40);
+  /* header: the Thallas mark and name */
+  for(y=0;y<LOGO.length;y++)for(x=0;x<LOGO[y].length;x++){var v=LOGO[y].charCodeAt(x)-48; if(v){g.fillStyle=v===1?INKC:DIM; g.fillRect(40+x,38+y,1,1);}}
+  g.fillStyle=INKC; g.textBaseline='alphabetic'; g.textAlign='left';
+  s=fitText(g,'THALLAS CORP',450,66,30,deco); g.fillText(s,104,90);
+  g.fillStyle=DIM; s=fitText(g,'AQUARIUS RESEARCH BASE  //  EXPEDITION DEEP CONTACT',450,14,9,disp); g.fillText(s,106,112);
+  g.fillStyle=INKC; g.fillRect(40,126,W-80,2);
+  /* photo, flanked by stepped deco bars */
+  g.imageSmoothingEnabled=false; g.drawImage(reg.photo,180,146,240,320); g.lineWidth=2; g.strokeRect(177,143,246,326);
+  for(i=0;i<5;i++){var bh=300-i*54; g.fillStyle=i%2?DIM:INKC; g.fillRect(152-i*26,468-bh,12,bh); g.fillRect(436+i*26,468-bh,12,bh);}
+  /* rank and name */
+  g.textAlign='center'; g.fillStyle=INKC;
+  s=fitText(g,'VISITING PROFESSOR',520,54,24,deco); g.fillText(s,W/2,524);
+  s=fitText(g,f.name,520,32,14,disp); g.fillText(s,W/2,564);
+  g.fillRect(40,582,W-80,2); g.save(); g.translate(W/2,583); g.rotate(Math.PI/4); g.fillRect(-7,-7,14,14); g.fillStyle=WAT; g.fillRect(-3,-3,6,6); g.restore();
+  /* details */
+  g.textAlign='left';
+  [['SPECIALTY',f.spec],['AFFILIATION',f.org],['HOME TOWN',f.town]].forEach(function(r,n){
+    var by=622+n*34; g.fillStyle=DIM; g.font=disp.replace('#',13+'px'); g.fillText(r[0],44,by);
+    g.fillStyle=INKC; g.fillText(fitText(g,r[1],386,20,12,mono),170,by);
+  });
+  /* footer band */
+  var d=new Date(), day=d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);
+  g.fillStyle=INKC; g.fillRect(28,724,W-56,48); g.fillStyle=WAT; g.font=disp.replace('#',17+'px');
+  g.fillText('ID NO. '+reg.id,44,754); g.textAlign='right'; g.fillText('ISSUED '+day,W-44,754);
+  /* snap every pixel to the four tones so the type is as crisp as the photo */
+  var im=g.getImageData(0,0,W,H), px=im.data;
+  for(i=0;i<px.length;i+=4){var l=px[i]*.299+px[i+1]*.587+px[i+2]*.114, p=PAL[l<47?0:l<121?1:l<201?2:3]; px[i]=p[0]; px[i+1]=p[1]; px[i+2]=p[2];}
+  g.putImageData(im,0,0);
+  return cv;
+}
+function cardBlob(done){                                 /* the card at twice the size, pixels kept square */
+  var big=document.createElement('canvas'); big.width=1200; big.height=1600;
+  var g=big.getContext('2d'); g.imageSmoothingEnabled=false; g.drawImage(reg.card,0,0,1200,1600);
+  big.toBlob(done,'image/png');
+}
+function showYou(){                                       /* put the ID photo on the Visiting Professor card */
+  var card=$('you-card'); if(!card||!reg.photo)return;
+  var slot=card.querySelector('.slot'), img=document.createElement('img');
+  img.src=reg.photo.toDataURL('image/png'); img.alt='Your ID photo'; slot.textContent=''; slot.appendChild(img);
+  if(reg.card)card.querySelector('.role').textContent=reg.f.name;
+}
+
+function register(){
+  var body=document.createElement('div'); body.className='stack';
+  var stream=null, video=null, raf=0, timer=0, st={}, state='', draft=null;
+  function camOff(){cancelAnimationFrame(raf); clearTimeout(timer); if(stream){stream.getTracks().forEach(function(t){t.stop();}); stream=null;} if(video){video.srcObject=null;}}
+  var mine=openWin('Thallas Corp // Visiting Professor registration',body,function(){camOff(); showYou();});
+  function alive(){return back===mine;}
+  if(reg.card)return cardView();
+  formView();
+
+  function formView(){
+    body.innerHTML='<h3>Register</h3>'+
+      '<div class="cols reg"><div class="stack">'+
+        '<div class="slot cam"><canvas width="'+PW+'" height="'+PH+'" role="img" aria-label="ID photo preview"></canvas><span class="cam-msg"></span><b class="count" hidden></b></div>'+
+        '<div class="cam-row">'+
+          '<button type="button" class="mini" data-do="take">Take ID Photo</button>'+
+          '<button type="button" class="mini" data-do="retake">Re-take</button>'+
+          '<button type="button" class="mini" data-do="keep">Save</button>'+
+          '<button type="button" class="mini" data-do="cam">Turn on camera</button>'+
+          '<label class="mini" data-do="up">Upload a photo<input type="file" accept="image/*" class="sr"></label>'+
+        '</div><p class="fine cam-say" aria-live="polite"></p></div>'+
+      '<form class="text" novalidate>'+
+        '<label>Name<input name="name" maxlength="40" autocomplete="name"></label>'+
+        '<label>Specialty<input name="spec" maxlength="48" autocomplete="off"></label>'+
+        '<label>University / company<input name="org" maxlength="56" autocomplete="organization"></label>'+
+        '<label>Home town<input name="town" maxlength="48" autocomplete="address-level2"></label>'+
+        '<button type="submit" class="btn" disabled>Generate ID Card</button>'+
+        '<p class="fine need" aria-live="polite"></p>'+
+        '<p class="fine">Your photo and details stay in this browser. Nothing is uploaded, and everything is erased when you leave the page.</p>'+
+      '</form></div>';
+    var cv=body.querySelector('canvas'), g=cv.getContext('2d',{willReadFrequently:true}), msg=body.querySelector('.cam-msg'), count=body.querySelector('.count'),
+        say=body.querySelector('.cam-say'), form=body.querySelector('form'), go=form.querySelector('.btn'), need=form.querySelector('.need'), file=body.querySelector('input[type=file]');
+    var SHOW={ask:[],live:['take'],count:[],shot:['retake','keep'],saved:['retake'],off:['cam','up']};
+    function set(s,text){
+      state=s;
+      [].forEach.call(body.querySelectorAll('[data-do]'),function(b){b.hidden=SHOW[s].indexOf(b.getAttribute('data-do'))<0;});
+      msg.hidden=!(s==='ask'||s==='off'); msg.textContent=s==='ask'?'Waiting for camera':'Camera off';
+      say.textContent=text||({ask:'Allow the camera when your browser asks.',live:'Line up your face, then take the photo.',shot:'Keep this photo, or take another.',saved:'ID photo saved.',count:''})[s]||'';
+      check();
+    }
+    function check(){
+      var miss=[]; if(!reg.photo)miss.push('ID photo');
+      [['name','name'],['spec','specialty'],['org','university / company'],['town','home town']].forEach(function(r){reg.f[r[0]]=form.elements[r[0]].value.trim(); if(!reg.f[r[0]])miss.push(r[1]);});
+      go.disabled=miss.length>0; need.textContent=miss.length?'Still needed: '+miss.join(', ')+'.':'Ready to print.';
+    }
+    function loop(){
+      var last=0; cancelAnimationFrame(raf);
+      (function frame(t){
+        if(!alive()||!stream)return;
+        raf=requestAnimationFrame(frame);
+        if(t-last<70||video.readyState<2||!video.videoWidth)return; last=t;
+        tone(g,video,video.videoWidth,video.videoHeight,true,st);
+      })(0);
+    }
+    function camOn(){
+      if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)return set('off','This browser cannot reach a camera here. You can upload a photo instead.');
+      set('ask');
+      navigator.mediaDevices.getUserMedia({video:{facingMode:'user',width:{ideal:640},height:{ideal:480}},audio:false}).then(function(s){
+        if(!alive()||state!=='ask'){s.getTracks().forEach(function(t){t.stop();}); return;}
+        stream=s; if(!video){video=document.createElement('video'); video.muted=true; video.playsInline=true; video.setAttribute('playsinline',''); video.className='sr'; body.appendChild(video);}
+        video.srcObject=s; var p=video.play(); if(p&&p.catch)p.catch(function(){});
+        st={}; set('live'); loop();
+      }).catch(function(e){
+        if(!alive())return;
+        set('off',e&&(e.name==='NotAllowedError'||e.name==='SecurityError')?'The camera was not allowed. Turn it on in your browser, or upload a photo instead.':'No camera was found. You can upload a photo instead.');
+      });
+    }
+    function snap(){
+      var n=3; set('count'); count.hidden=false; count.textContent=n;
+      (function tick(){
+        timer=setTimeout(function(){
+          if(!alive())return;
+          if(--n>0){count.textContent=n; return tick();}
+          count.hidden=true; cancelAnimationFrame(raf);
+          if(video&&video.videoWidth)tone(g,video,video.videoWidth,video.videoHeight,true,st);
+          draft=true; cv.parentNode.classList.add('flash'); setTimeout(function(){cv.parentNode.classList.remove('flash');},250);
+          set('shot');
+        },850);
+      })();
+    }
+    body.querySelector('.cam-row').addEventListener('click',function(e){
+      var b=e.target.closest('button[data-do]'); if(!b)return;
+      var what=b.getAttribute('data-do');
+      if(what==='take'&&state==='live')snap();
+      else if(what==='retake'){reg.photo=null; draft=null; if(stream){set('live'); loop();} else camOn();}
+      else if(what==='keep'&&draft){var keep=document.createElement('canvas'); keep.width=PW; keep.height=PH; keep.getContext('2d').drawImage(cv,0,0); reg.photo=keep; camOff(); set('saved');}
+      else if(what==='cam')camOn();
+    });
+    file.addEventListener('change',function(){
+      var fl=file.files&&file.files[0]; if(!fl)return;
+      var img=new Image(), url=URL.createObjectURL(fl);
+      img.onload=function(){camOff(); tone(g,img,img.naturalWidth,img.naturalHeight,false,{}); URL.revokeObjectURL(url); draft=true; set('shot');};
+      img.onerror=function(){URL.revokeObjectURL(url); set('off','That file could not be read as a picture.');};
+      img.src=url; file.value='';
+    });
+    form.addEventListener('input',check);
+    form.addEventListener('submit',function(e){e.preventDefault(); check(); if(!go.disabled)printView();});
+    ['name','spec','org','town'].forEach(function(k){form.elements[k].value=reg.f[k]||'';});
+    if(reg.photo){g.drawImage(reg.photo,0,0); set('saved');} else camOn();
+  }
+
+  function printView(){
+    camOff();
+    var f=reg.f, log=document.createElement('div'); log.className='term'; log.setAttribute('aria-live','polite');
+    if(!reg.id)reg.id='TC-'+(''+(100000+Math.floor(Math.random()*900000)));
+    body.textContent=''; body.appendChild(log);
+    var fonts=[]; try{var cs=getComputedStyle(root); fonts=[document.fonts.load('40px '+cs.getPropertyValue('--deco')),document.fonts.load('700 20px '+cs.getPropertyValue('--display')),document.fonts.load('20px '+getComputedStyle(document.body).fontFamily)];}catch(e){}
+    var ready=Promise.all(fonts).catch(function(){});
+    typeLog(log,[
+      ['THALLAS CORP // IDENTIFICATION BUREAU',''],
+      ['> Receiving registration packet','OK'],
+      ['> Verifying name: '+f.name.toUpperCase(),'VERIFIED'],
+      ['> Verifying specialty: '+f.spec.toUpperCase(),'VERIFIED'],
+      ['> Confirming affiliation: '+f.org.toUpperCase(),'CONFIRMED'],
+      ['> Confirming home town: '+f.town.toUpperCase(),'CONFIRMED'],
+      ['> Scanning ID photo','4 TONES / '+PW+'x'+PH],
+      ['> Assigning rank','VISITING PROFESSOR'],
+      ['> Assigning ID number',reg.id],
+      ['> Clearance: AQUARIUS RESEARCH BASE','GRANTED'],
+      ['> Sending card to printer','OK'],
+      ['> Printing ID card','DONE']
+    ],alive,function(){
+      var g=document.createElement('strong'); g.className='granted'; g.textContent='ID issued'; log.appendChild(g);
+      ready.then(function(){setTimeout(function(){if(!alive())return; reg.card=drawCard(); showYou(); cardView(true);},still?700:1200);});
+    });
+  }
+
+  function cardView(fresh){
+    body.innerHTML='<h3>Your ID card</h3><div class="idcard'+(fresh&&!still?' print':'')+'"></div>'+
+      '<div class="cam-row id-row"><button type="button" class="btn" data-do="save">Save image</button><button type="button" class="btn ghost" data-do="share">Share</button><button type="button" class="btn ghost" data-do="close">Close</button></div>'+
+      '<p class="fine id-say" aria-live="polite"></p><button type="button" class="mini" data-do="again" style="align-self:center">Start over</button>';
+    var img=new Image(); img.alt='Thallas Corp ID card: Visiting Professor '+reg.f.name+', '+reg.f.spec+', '+reg.f.org+', '+reg.f.town+'. ID number '+reg.id+'.';
+    img.src=reg.card.toDataURL('image/png'); body.querySelector('.idcard').appendChild(img);
+    var say=body.querySelector('.id-say'), share=body.querySelector('[data-do=share]');
+    var canFile=false; try{canFile=!!(navigator.canShare&&navigator.canShare({files:[new File([''],'x.png',{type:'image/png'})]}));}catch(e){}
+    var canCopy=!!(navigator.clipboard&&navigator.clipboard.write&&window.ClipboardItem);
+    if(!canFile&&!canCopy)share.hidden=true; else if(!canFile)share.textContent='Copy image';
+    body.addEventListener('click',function(e){
+      var b=e.target.closest('[data-do]'); if(!b||!alive())return;
+      var what=b.getAttribute('data-do');
+      if(what==='close')closeWin();
+      else if(what==='again'){reg.card=null; formView();}
+      else if(what==='save')cardBlob(function(blob){
+        if(!blob)return; var a=document.createElement('a'), url=URL.createObjectURL(blob);
+        a.href=url; a.download='thallas-corp-id-card.png'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(function(){URL.revokeObjectURL(url);},4000);
+        say.textContent='Saved as thallas-corp-id-card.png.';
+      });
+      else if(what==='share')cardBlob(function(blob){
+        if(!blob)return;
+        if(canFile){navigator.share({files:[new File([blob],'thallas-corp-id-card.png',{type:'image/png'})],title:'Thallas Corp ID',text:'I enrolled in Expedition Deep Contact.'}).catch(function(){});}
+        else{navigator.clipboard.write([new ClipboardItem({'image/png':blob})]).then(function(){say.textContent='Card copied. Paste it into a message or post.';},function(){say.textContent='Copying was blocked. Use Save image instead.';});}
+      });
+    });
+  }
+}
+$('register').addEventListener('click',register);
+window.__reg=reg;
+
 $('replay').addEventListener('click',function(){try{sessionStorage.removeItem('dc-access');}catch(e){} location.reload();});
 
 /* ================= Pixel 3D models =================
