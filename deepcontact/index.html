@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Deep Contact | xrprof</title>
+<meta name="description" content="Deep Contact: a wearable AR mystery for Specs, set aboard the Aquarius Research Base.">
+<meta name="theme-color" content="#000000">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,600;1,400&family=Limelight&family=Pixelify+Sans:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/site.css?v=6f5cbb11">
+<script>/* Show the enrollment gate unless this visitor has already passed it in this browser session. */
+try{if(sessionStorage.getItem('dc-access')!=='1')document.documentElement.classList.add('gated');}catch(e){document.documentElement.classList.add('gated');}</script>
+<style>
+/* Deep Contact. Layout idea: a Thallas Corp company terminal. The site's black-and-white CRT
+   world, dressed in art deco: stepped frames, diamonds, chevrons and a sunburst. Colours and
+   the tube come from site.css; this adds only what is particular to the game page. */
+:root{--deco:"Limelight","Pixelify Sans",Georgia,serif}
+html.gated{overflow:hidden}
+html.gated .page{visibility:hidden}
+html.win-open{overflow:hidden}
+
+/* ---------- Enrollment gate ---------- */
+.gate{position:fixed;inset:0;z-index:9;background:var(--water);display:grid;place-items:center;padding:calc(var(--edge) + 20px);text-align:center;
+  background-image:repeating-conic-gradient(from -70deg at 50% 118%,rgba(242,245,238,.045) 0 3deg,transparent 3deg 7deg)}
+.gate[hidden],#logo[hidden],.status[hidden]{display:none}
+.gate.out{opacity:0;pointer-events:none;transition:opacity .5s steps(5)}
+.gate-in{display:flex;flex-direction:column;align-items:center;gap:22px;max-width:640px}
+#logo{width:min(188px,44vw);height:auto;image-rendering:pixelated;display:block}
+.status{font-family:var(--display);font-size:15px;letter-spacing:.16em;text-transform:uppercase;min-height:1.6em;font-variant-numeric:tabular-nums}
+.welcome{display:flex;flex-direction:column;align-items:center;gap:26px;animation:poweron .8s cubic-bezier(.2,.8,.2,1) both}
+.welcome[hidden]{display:none}
+.welcome h2{font-family:var(--deco);font-size:clamp(30px,7vw,56px);line-height:1.05;letter-spacing:.04em;text-transform:uppercase;text-wrap:balance}
+.welcome h2::after{display:none}
+.skip{position:fixed;right:calc(var(--edge) + 18px);bottom:calc(var(--edge) + 14px);font-family:var(--display);font-size:13px;letter-spacing:.1em;text-transform:uppercase;
+  background:none;border:0;color:var(--dim);cursor:pointer;text-decoration:underline;text-underline-offset:4px;padding:6px}
+.skip:hover,.skip:focus-visible{color:var(--ink)}
+
+/* ---------- Page ---------- */
+.dc-top{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:14px 24px}
+.dc-top .who{display:flex;align-items:center;gap:14px;font-family:var(--display);font-size:14px;letter-spacing:.12em;text-transform:uppercase}
+.dia{flex:none;display:inline-block;width:14px;height:14px;transform:rotate(45deg);border:2px solid var(--ink);box-shadow:0 0 0 3px var(--water),0 0 0 5px var(--ink);margin:6px}
+.hero{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);gap:30px;align-items:center;padding:26px 0 8px;
+  background:repeating-conic-gradient(from -62deg at 34% 112%,rgba(242,245,238,.06) 0 3deg,transparent 3deg 7deg)}
+.hero h1{font-family:var(--deco);font-weight:400;font-size:clamp(44px,8.4vw,84px);line-height:.95;letter-spacing:.02em;outline:none;overflow-wrap:anywhere}
+.hero .stack{min-width:0}
+.kick{font-family:var(--display);font-size:14px;letter-spacing:.16em;text-transform:uppercase}
+.frame{border:2px solid var(--ink);outline:2px solid var(--ink);outline-offset:5px;margin:7px;position:relative}
+.frame img,.frame canvas{display:block;width:100%;height:auto;image-rendering:pixelated}
+.frame::before,.frame::after{content:"";position:absolute;left:50%;width:16px;height:16px;margin-left:-8px;transform:rotate(45deg);background:var(--water);border:2px solid var(--ink);z-index:1}
+.frame::before{top:-14px}.frame::after{bottom:-14px}
+.dc section{gap:20px}
+.dh{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center}
+.dh h2{font-family:var(--deco);font-weight:400;font-size:clamp(28px,6vw,46px);letter-spacing:.05em}
+.dh h2::after{display:none}
+.rule{display:flex;align-items:center;gap:12px;width:100%}
+.rule::before,.rule::after{content:"";flex:1;height:8px;border-top:2px solid var(--ink);border-bottom:2px solid var(--ink)}
+.dh .sub{font-family:var(--display);font-size:14px;letter-spacing:.18em;text-transform:uppercase;color:var(--dim)}
+.intro{max-width:65ch;margin:0 auto;text-align:center}
+
+/* ---------- Model viewers ---------- */
+.viewer{display:flex;flex-direction:column;gap:12px;max-width:720px;width:100%;margin:0 auto}
+.stage{position:relative;aspect-ratio:4/3;cursor:grab;touch-action:pan-y;user-select:none;-webkit-user-select:none}
+.stage:active{cursor:grabbing}
+.stage canvas{position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelated;outline:none}
+.stage canvas:focus-visible{outline:2px dashed var(--ink);outline-offset:-6px}
+.spot{position:absolute;width:20px;height:20px;margin:-10px 0 0 -10px;padding:0;transform:rotate(45deg);background:var(--water);border:2px solid var(--ink);cursor:pointer;
+  animation:spot 1.6s steps(1) infinite}
+.spot::before{content:"";position:absolute;inset:4px;background:var(--ink)}
+.spot::after{content:"";position:absolute;inset:-13px}
+.spot.behind{opacity:.4}
+.spot:hover,.spot:focus-visible{background:var(--ink);outline:none;box-shadow:0 0 0 3px var(--water),0 0 0 5px var(--ink),0 0 18px 8px rgba(242,245,238,.5);animation:none}
+.spot:hover::before,.spot:focus-visible::before{background:var(--water)}
+@keyframes spot{50%{box-shadow:0 0 0 3px var(--water),0 0 0 5px var(--ink)}}
+.vctl{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 14px;font-family:var(--display);font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
+.mini{font:inherit;letter-spacing:inherit;text-transform:inherit;color:var(--ink);background:var(--water);border:2px solid var(--ink);padding:3px 10px;cursor:pointer}
+.mini:hover,.mini[aria-pressed="true"]{background:var(--ink);color:var(--water)}
+.mini:focus-visible{outline:2px dashed var(--ink);outline-offset:4px}
+.toggle{display:flex;justify-content:center;font-family:var(--display);font-size:15px;letter-spacing:.1em;text-transform:uppercase}
+.toggle .mini{padding:6px 16px}
+.toggle .mini+.mini{border-left:0}
+
+/* ---------- Cards ---------- */
+.people{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:18px}
+.pcard{border:2px solid var(--ink);padding:12px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.pcard h3{font-size:19px}
+.pcard .role{font-family:var(--display);font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim)}
+.pcard .mini{margin-top:auto;align-self:flex-start}
+.slot{aspect-ratio:3/4;border:2px solid var(--ink);background:var(--dither);display:grid;place-items:center;overflow:hidden}
+.slot span{background:var(--water);padding:3px 9px;font-family:var(--display);font-size:13px;letter-spacing:.1em;text-transform:uppercase}
+.slot img{width:100%;height:100%;object-fit:cover;image-rendering:pixelated}
+
+/* ---------- Retro pop-up window ---------- */
+.win-back{position:fixed;inset:0;z-index:20;display:grid;place-items:center;padding:calc(var(--edge) + 12px);background:rgba(0,0,0,.82);overflow:auto}
+.win{width:min(760px,100%);background:var(--water);border:2px solid var(--ink);box-shadow:0 0 0 2px var(--water),0 0 0 4px var(--ink),0 0 46px rgba(220,255,235,.14);
+  animation:poweron .5s cubic-bezier(.2,.8,.2,1) both}
+.win-bar{display:flex;align-items:center;gap:10px;background:var(--ink);color:var(--water);padding:5px 6px;font-family:var(--display);font-weight:700;font-size:14px;letter-spacing:.1em;text-transform:uppercase}
+.win-x{flex:none;width:28px;height:28px;border:2px solid var(--water);background:var(--ink);color:var(--water);font:700 15px var(--display);cursor:pointer;line-height:1}
+.win-x:hover,.win-x:focus-visible{background:var(--water);color:var(--ink);outline:none}
+.win-deco{flex:1;min-width:20px;height:12px;background:repeating-linear-gradient(to bottom,var(--water) 0 2px,transparent 2px 4px)}
+.win-body{padding:18px;display:flex;flex-direction:column;gap:14px;max-height:72vh;overflow:auto}
+.win-body h3{font-family:var(--deco);font-weight:400;font-size:28px;letter-spacing:.04em}
+.cols{display:grid;grid-template-columns:minmax(120px,230px) minmax(0,1fr);gap:18px;align-items:start}
+.cols .text{display:flex;flex-direction:column;gap:12px}
+.term{font-size:14px;line-height:1.7;min-height:250px;white-space:pre-wrap;overflow-wrap:anywhere}
+.term .cur::after{content:"\2588";animation:blink 1s steps(1) infinite}
+.granted{display:block;margin-top:14px;font-family:var(--deco);font-size:clamp(26px,6vw,40px);letter-spacing:.08em;text-align:center;background:var(--ink);color:var(--water);padding:6px;animation:blink .5s steps(1) 3}
+.cta{display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center}
+.foot .mini{align-self:flex-start;font-family:var(--display);font-size:13px;letter-spacing:.1em;text-transform:uppercase}
+@media (max-width:700px){.hero{grid-template-columns:1fr}.hero .frame{max-width:340px}}
+@media (max-width:560px){.cols{grid-template-columns:1fr}.cols .slot{max-width:200px}}
+@media (prefers-reduced-motion:reduce){.welcome,.win,.spot,.granted,.term .cur::after{animation:none}.gate.out{transition:none}}
+</style>
+</head>
+<body class="dc">
+<div class="tube" aria-hidden="true"></div>
+
+<!-- Enrollment gate: logo fills as a loading bar, dissolves, then the welcome and the Enroll button. -->
+<div class="gate" id="gate" hidden>
+  <div class="gate-in">
+    <canvas id="logo" width="47" height="67" role="img" aria-label="Thallas Corp logo, loading"></canvas>
+    <p class="status" id="status" aria-live="polite">Establishing uplink 0%</p>
+    <div class="welcome" id="welcome" hidden>
+      <h2>Welcome to Thallas Corp</h2>
+      <button type="button" class="btn" id="enroll">Enroll in Expedition Deep Contact</button>
+    </div>
+  </div>
+  <button type="button" class="skip" id="skip">Skip</button>
+</div>
+
+<div class="page">
+  <header class="dc-top">
+    <div class="who"><a class="mark" href="../" aria-label="xrprof home">xrprof</a><span class="dia" aria-hidden="true"></span><span>Thallas Corp</span></div>
+    <a class="btn" href="https://lenses.specs.com/lens/com.example.deepcontact2026?category=learn" rel="noopener">Try it on SPECS</a>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="stack">
+        <p class="kick">Expedition file · Wearable AR for Specs</p>
+        <h1 id="title" tabindex="-1">Deep Contact</h1>
+        <!-- EDIT: the tagline. -->
+        <p class="lead">Your first day aboard a deep-sea research facility. A rare octopus to find. An expedition that is not what it seems.</p>
+      </div>
+      <div class="frame"><img src="dc-key.png" width="504" height="504" alt="Deep Contact key art: a submersible with glowing lamps between two tentacles, in pixel art"></div>
+    </section>
+
+    <!-- ============ Aquarius Research Base ============ -->
+    <section id="base">
+      <header class="dh">
+        <div class="rule"><span class="dia" aria-hidden="true"></span></div>
+        <h2>Aquarius Research Base</h2>
+        <p class="sub">A modern Atlantis</p>
+      </header>
+      <!-- EDIT: one or two sentences introducing the base. -->
+      <p class="intro">[Introduce the base in a sentence or two.]</p>
+      <div class="viewer" id="v-base">
+        <div class="frame"><div class="stage"><canvas width="240" height="180" tabindex="0" aria-label="Rotatable model of the Aquarius Research Base. Use the left and right arrow keys to turn it."></canvas></div></div>
+        <div class="vctl"><button type="button" class="mini" data-turn="-1">&#9664; Turn</button><span>Drag to rotate · tap a diamond</span><button type="button" class="mini" data-turn="1">Turn &#9654;</button></div>
+      </div>
+    </section>
+
+    <!-- ============ Equipment ============ -->
+    <section id="equipment">
+      <header class="dh">
+        <div class="rule"><span class="dia" aria-hidden="true"></span></div>
+        <h2>Equipment</h2>
+        <p class="sub" id="eq-sub">Submersible</p>
+      </header>
+      <div class="toggle" role="group" aria-label="Choose equipment">
+        <button type="button" class="mini" data-model="sub" aria-pressed="true">Submersible</button>
+        <button type="button" class="mini" data-model="gun" aria-pressed="false">Dart Gun</button>
+      </div>
+      <div class="viewer" id="v-eq">
+        <div class="frame"><div class="stage"><canvas width="240" height="180" tabindex="0" aria-label="Rotatable model of the selected equipment. Use the left and right arrow keys to turn it."></canvas></div></div>
+        <div class="vctl"><button type="button" class="mini" data-turn="-1">&#9664; Turn</button><span>Drag to rotate · tap a diamond</span><button type="button" class="mini" data-turn="1">Turn &#9654;</button></div>
+      </div>
+    </section>
+
+    <!-- ============ Personnel ============ -->
+    <section id="personnel">
+      <header class="dh">
+        <div class="rule"><span class="dia" aria-hidden="true"></span></div>
+        <h2>Personnel</h2>
+      </header>
+      <!-- EDIT: to add a portrait, replace the <span> in a slot with <img src="your-file.png" alt="..."> (3:4). -->
+      <div class="people">
+        <article class="pcard">
+          <div class="slot"><span>Portrait 3:4</span></div>
+          <h3>Dr. Flores</h3><p class="role">[Role]</p>
+          <button type="button" class="mini" data-file="p-flores">Open file</button>
+        </article>
+        <article class="pcard">
+          <div class="slot"><span>Portrait 3:4</span></div>
+          <h3>Thaddeus Givens</h3><p class="role">[Role]</p>
+          <button type="button" class="mini" data-file="p-givens">Open file</button>
+        </article>
+        <article class="pcard">
+          <div class="slot"><span>Portrait 3:4</span></div>
+          <h3>Quark</h3><p class="role">The robot</p>
+          <button type="button" class="mini" data-file="p-quark">Open file</button>
+        </article>
+        <article class="pcard">
+          <div class="slot"><span>Portrait 3:4</span></div>
+          <h3>Visiting Professor</h3><p class="role">You, the player</p>
+          <button type="button" class="mini" data-file="p-professor">Open file</button>
+        </article>
+      </div>
+    </section>
+
+    <!-- ============ Credits ============ -->
+    <section id="credits">
+      <header class="dh">
+        <div class="rule"><span class="dia" aria-hidden="true"></span></div>
+        <h2>Credits</h2>
+      </header>
+      <div class="people">
+        <article class="pcard">
+          <div class="slot"><img src="../assets/portrait.png" alt="Pixel-art portrait of Daniel Pimentel"></div>
+          <h3>Dr. Daniel Pimentel</h3><p class="role">Creator</p>
+          <button type="button" class="mini" data-file="c-pimentel">Open file</button>
+        </article>
+        <article class="pcard">
+          <div class="slot"><span>Image 3:4</span></div>
+          <h3>Sirintip</h3><p class="role">Music</p>
+          <button type="button" class="mini" data-file="c-sirintip">Open file</button>
+        </article>
+        <article class="pcard">
+          <div class="slot"><span>Image 3:4</span></div>
+          <h3>SPECS</h3><p class="role">Underwriting partner</p>
+          <button type="button" class="mini" data-file="c-specs">Open file</button>
+        </article>
+      </div>
+    </section>
+
+    <section class="cta">
+      <div class="rule"><span class="dia" aria-hidden="true"></span></div>
+      <a class="btn" href="https://lenses.specs.com/lens/com.example.deepcontact2026?category=learn" rel="noopener">Try it on SPECS</a>
+    </section>
+    <noscript><p class="intro">The rotating models and pop-up files on this page need JavaScript.</p></noscript>
+  </main>
+
+  <footer class="foot">
+    <div class="swell" aria-hidden="true"></div>
+    <a class="back" href="../">&larr; Back to xrprof</a>
+    <p>The enrollment terminal is part of the fiction. It reads only what your browser already shares with any page (time zone, language, screen size). Nothing is stored or sent anywhere.</p>
+    <button type="button" class="mini" id="replay">Replay enrollment</button>
+    <p>&copy; 2026 Daniel Pimentel. xrprof.org</p>
+  </footer>
+</div>
+
+<!-- ====================================================================================
+     POP-UP FILES. One <template> per pop-up, named "file-" plus the id used by a diamond or
+     an "Open file" button. Each has a header, a 3:4 image slot on the left and text on the right.
+     EDIT: replace the text in [square brackets]; to add a picture, replace the <span> in the
+     slot with <img src="your-file.png" alt="...">. data-bar is the window's title bar.
+     ==================================================================================== -->
+<template id="file-base-1" data-bar="Aquarius Research Base // Sector 01">
+  <h3>Sector 01</h3>
+  <div class="cols"><div class="slot"><img src="dc-poster-base.png" alt="Poster: Aquarius Base, a modern Atlantis"></div>
+  <div class="text"><p>[Name this part of the base and say what happens here.]</p><p>[A second paragraph, if you need one.]</p></div></div>
+</template>
+<template id="file-base-2" data-bar="Aquarius Research Base // Sector 02">
+  <h3>Sector 02</h3>
+  <div class="cols"><div class="slot"><span>Image 3:4</span></div>
+  <div class="text"><p>[Name this part of the base and say what happens here.]</p></div></div>
+</template>
+<template id="file-base-3" data-bar="Aquarius Research Base // Sector 03">
+  <h3>Sector 03</h3>
+  <div class="cols"><div class="slot"><span>Image 3:4</span></div>
+  <div class="text"><p>[Name this part of the base and say what happens here.]</p></div></div>
+</template>
+<template id="file-sub-1" data-bar="Equipment // Submersible 01">
+  <h3>Submersible: 01</h3>
+  <div class="cols"><div class="slot"><span>Image 3:4</span></div>
+  <div class="text"><p>[Name this part of the submersible and say what it does.]</p></div></div>
+</template>
+<template id="file-sub-2" data-bar="Equipment // Submersible 02">
+  <h3>Submersible: 02</h3>
+  <div class="cols"><div class="slot"><span>Image 3:4</span></div>
+  <div class="text"><p>[Name this part of the submersible and say what it does.]</p></div></div>
+</template>
+<template id="file-gun-1" data-bar="Equipment // Dart Gun 01">
+  <h3>Dart Gun: 01</h3>
+  <div class="cols"><div class="slot"><img src="dc-poster-telemetry.png" alt="Poster: tag creatures with marine telemetry"></div>
+  <div class="text"><p>Tag creatures with marine telemetry.</p><p>[Say how the player uses the dart gun.]</p></div></div>
+</template>
+<template id="file-gun-2" data-bar="Equipment // Dart Gun 02">
+  <h3>Dart Gun: 02</h3>
+  <div class="cols"><div class="slot"><span>Image 3:4</span></div>
+  <div class="text"><p>[Name this part of the dart gun and say what it does.]</p></div></div>
+</template>
+<template id="file-p-flores" data-bar="Personnel // Dr. Flores">
+  <h3>Dr. Flores</h3>
+  <div class="cols"><div class="slot"><span>Portrait 3:4</span></div>
+  <div class="text"><p>[Role aboard Aquarius.]</p><p>[A short profile.]</p></div></div>
+</template>
+<template id="file-p-givens" data-bar="Personnel // Thaddeus Givens">
+  <h3>Thaddeus Givens</h3>
+  <div class="cols"><div class="slot"><span>Portrait 3:4</span></div>
+  <div class="text"><p>[Role aboard Aquarius.]</p><p>[A short profile.]</p></div></div>
+</template>
+<template id="file-p-quark" data-bar="Personnel // Quark">
+  <h3>Quark</h3>
+  <div class="cols"><div class="slot"><span>Portrait 3:4</span></div>
+  <div class="text"><p>The robot.</p><p>[A short profile.]</p></div></div>
+</template>
+<template id="file-p-professor" data-bar="Personnel // Visiting Professor">
+  <h3>Visiting Professor</h3>
+  <div class="cols"><div class="slot"><span>Portrait 3:4</span></div>
+  <div class="text"><p>That is you.</p><p>[What the player is here to do.]</p></div></div>
+</template>
+<template id="file-c-pimentel" data-bar="Credits // Dr. Daniel Pimentel">
+  <h3>Dr. Daniel Pimentel</h3>
+  <div class="cols"><div class="slot"><img src="../assets/portrait.png" alt="Pixel-art portrait of Daniel Pimentel"></div>
+  <div class="text"><p>Creator of Deep Contact. Director of the University of Oregon&rsquo;s Reality Lab.</p><p><a href="../about-me/">About Daniel</a></p></div></div>
+</template>
+<template id="file-c-sirintip" data-bar="Credits // Sirintip">
+  <h3>Sirintip</h3>
+  <div class="cols"><div class="slot"><span>Image 3:4</span></div>
+  <div class="text"><p>Music.</p><p>[A line about the score, and a link.]</p></div></div>
+</template>
+<template id="file-c-specs" data-bar="Credits // SPECS">
+  <h3>SPECS</h3>
+  <div class="cols"><div class="slot"><span>Image 3:4</span></div>
+  <div class="text"><p>Deep Contact was made with the support of SPECS.</p><p>[A line of thanks.]</p><p><a href="https://www.specs.com/" rel="noopener">specs.com</a></p></div></div>
+</template>
+
+<script src="../assets/site.js?v=6f5cbb11"></script>
+<script>
+(function(){
+'use strict';
+var root=document.documentElement;
+var still=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+function $(id){return document.getElementById(id);}
+
+/* ================= Retro pop-up window ================= */
+var back=null, lastFocus=null, onClose=null;
+function closeWin(){
+  if(!back)return;
+  var cb=onClose; onClose=null;
+  back.remove(); back=null; root.classList.remove('win-open');
+  if(lastFocus&&document.contains(lastFocus))lastFocus.focus();
+  if(cb)cb();
+}
+function openWin(bar,node,closed){
+  closeWin();
+  lastFocus=document.activeElement;
+  back=document.createElement('div'); back.className='win-back';
+  back.innerHTML='<div class="win" role="dialog" aria-modal="true"><div class="win-bar"><button type="button" class="win-x" aria-label="Close window">X</button><span class="win-name"></span><span class="win-deco" aria-hidden="true"></span></div><div class="win-body"></div></div>';
+  back.querySelector('.win').setAttribute('aria-label',bar);
+  back.querySelector('.win-name').textContent=bar;
+  back.querySelector('.win-body').appendChild(node);
+  back.querySelector('.win-x').addEventListener('click',closeWin);
+  back.addEventListener('click',function(e){if(e.target===back)closeWin();});
+  onClose=closed||null;
+  document.body.appendChild(back); root.classList.add('win-open');
+  back.querySelector('.win-x').focus();
+  return back;
+}
+document.addEventListener('keydown',function(e){if(e.key==='Escape')closeWin();});
+document.addEventListener('click',function(e){            /* diamonds and "Open file" buttons */
+  var b=e.target.closest&&e.target.closest('[data-file]'); if(!b)return;
+  var t=$('file-'+b.getAttribute('data-file')); if(!t)return;
+  var box=document.createElement('div'); box.className='stack'; box.appendChild(t.content.cloneNode(true));
+  openWin('Thallas Corp // '+(t.getAttribute('data-bar')||'File'),box);
+});
+
+/* ================= Enrollment gate ================= */
+var LOGO=["00000000000000000000000100000000000000000000000", "00000000000000000000001110000000000000000000000", "00000000000000000000001110000000000000000000000", "00000000000000000000011111000000000000000000000", "00000000000000000000111111100000000000000000000", "00000000000000000000111111100000000000000000000", "00000000000000000001111211110000000000000000000", "00000000000000000011112121111000000000000000000", "00000000000000000111112121111100000000000000000", "00000000000000000111121112111100000000000000000", "00000000000000001111211111211110000000000000000", "00000000000000011112211111221111000000000000000", "00000000000000011112111111121111000000000000000", "00000000000000111121111111112111100000000000000", "00000000000001111211111211111211110000000000000", "00000000000001111211112121111211110000000000000", "00000000000011112111112121111121111000000000000", "00000000000111121111121112111112111100000000000", "00000000001111121111211111211112111110000000000", "00000000001111211112211111221111211110000000000", "00000000011112111112111111121111121111000000000", "00000000111122111121111111112111122111100000000", "00000000111121111211111211111211112111100000000", "00000001111211111211112121111211111211110000000", "00000011112111112111112121111121111121111000000", "00000011112111121111121112111112111121111000000", "00000111121111121111211111211112111112111100000", "00001111211111211112211111221111211111211110000", "00011112211112111112111111121111121111221111000", "00011112111122111121111111112111122111121111000", "00111121111121111211111211111211112111112111100", "01111221111211111211112121111211111211112211110", "01111211112111112111112121111121111121111211110", "11112111112111121111121112111112111121111121111", "01121111121111121111211111211112111112111112110", "01111111211111211112211111221111211111211111110", "00111112211112111112111111121111121111221111100", "00011112111122111121111111112111122111121111000", "00011112111121111211111211111211112111121111000", "00001112111211111211112121111211111211121110000", "00000112111211112111112121111121111211121100000", "00000011111211121111121112111112111211111000000", "00000011111211121111211111211112111211111000000", "00000001111211121112211111221112111211110000000", "00000000111211121112111111121112111211100000000", "00000000111211121112111111121112111211100000000", "00000000011211121112111111121112111211000000000", "00000000001111121112111111121112111110000000000", "00000000001111121112111111121112111110000000000", "00000000000111121112111111121112111100000000000", "00000000000011121112111111121112111000000000000", "00000000000001121112111111121112110000000000000", "00000000000001111112111111121111110000000000000", "00000000000000111112111111121111100000000000000", "00000000000000011112111111121111000000000000000", "00000000000000011112111111121111000000000000000", "00000000000000001112111111121110000000000000000", "00000000000000000112111111121100000000000000000", "00000000000000000111111111111100000000000000000", "00000000000000000011111111111000000000000000000", "00000000000000000001111111110000000000000000000", "00000000000000000000111111100000000000000000000", "00000000000000000000111111100000000000000000000", "00000000000000000000011111000000000000000000000", "00000000000000000000001110000000000000000000000", "00000000000000000000001110000000000000000000000", "00000000000000000000000100000000000000000000000"];                      /* 47x67: 0 empty, 1 metal, 2 engraved line */
+var gate=$('gate'), granted=false;
+function grant(){
+  if(granted)return; granted=true;
+  try{sessionStorage.setItem('dc-access','1');}catch(e){}
+  gate.classList.add('out'); root.classList.remove('gated'); root.classList.add('tv-again');
+  setTimeout(function(){gate.hidden=true;root.classList.remove('tv-again');},1100);
+  var h=$('title'); if(h)h.focus({preventScroll:true});
+}
+function drawLogo(fill,gone,noise){     /* fill: 0..1 from the bottom up; gone: 0..1 dissolved */
+  var c=$('logo'), g=c.getContext('2d'), W=47, H=67, line=H-Math.round(fill*H), x, y, v;
+  g.clearRect(0,0,W,H);
+  for(y=0;y<H;y++)for(x=0;x<W;x++){
+    v=LOGO[y].charCodeAt(x)-48; if(!v)continue;
+    if(gone&&noise[y*W+x]<gone)continue;
+    if(y>=line)g.fillStyle=v===1?'#f2f5ee':'#0c0f0d';                      /* filled: solid metal, dark engraving */
+    else{                                                                  /* not yet: outline and faint engraving */
+      var edge=x===0||x===W-1||LOGO[y].charCodeAt(x-1)===48||LOGO[y].charCodeAt(x+1)===48||!LOGO[y-1]||!LOGO[y+1]||LOGO[y-1].charCodeAt(x)===48||LOGO[y+1].charCodeAt(x)===48;
+      if(edge)g.fillStyle='#f2f5ee'; else if(v===2)g.fillStyle='#525853'; else continue;
+    }
+    g.fillRect(x,y,1,1);
+  }
+}
+function runGate(){
+  gate.hidden=false;
+  var status=$('status'), noise=new Float32Array(47*67), i, t0=performance.now();
+  for(i=0;i<noise.length;i++)noise[i]=Math.random();
+  var FILL=still?500:2800, HOLD=350, GONE=still?1:850;
+  function frame(now){
+    if(granted)return;
+    var t=now-t0;
+    if(t<FILL){
+      var p=t/FILL; p=p<.5?2*p*p:1-Math.pow(-2*p+2,2)/2;                   /* ease in and out */
+      p=Math.floor(p*25)/25;                                               /* in steps, like a loading bar */
+      drawLogo(p,0,noise); status.textContent='Establishing uplink '+Math.round(p*100)+'%';
+    }else if(t<FILL+HOLD){drawLogo(1,0,noise); status.textContent='Uplink established 100%';}
+    else if(t<FILL+HOLD+GONE){drawLogo(1,(t-FILL-HOLD)/GONE,noise);}
+    else{
+      $('logo').hidden=true; status.hidden=true; $('welcome').hidden=false; $('enroll').focus();
+      return;
+    }
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+  $('skip').addEventListener('click',function(){closeWin();grant();});
+  $('enroll').addEventListener('click',terminal);
+}
+
+/* The credential check. For flavour it quotes a few things every browser already tells a page:
+   time zone, language, screen size, device type. No network request is made and nothing is kept. */
+function facts(){
+  var f={os:'UNKNOWN TERMINAL',scr:'',tz:'',city:'SURFACE',lang:'',time:''};
+  try{
+    var ua=navigator.userAgent||'';
+    f.os=/iPhone|iPad|iPod/.test(ua)?'iOS HANDSET':/Android/.test(ua)?'ANDROID HANDSET':/Mac/.test(ua)?'MACINTOSH':/Windows/.test(ua)?'WINDOWS PC':/Linux|CrOS/.test(ua)?'LINUX WORKSTATION':f.os;
+    f.scr=screen.width+'x'+screen.height;
+    f.tz=Intl.DateTimeFormat().resolvedOptions().timeZone||'';
+    if(f.tz.indexOf('/')>0)f.city=f.tz.split('/').pop().replace(/_/g,' ').toUpperCase();
+    f.lang=(navigator.language||'').toUpperCase();
+    var d=new Date(); f.time=('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2);
+  }catch(e){}
+  return f;
+}
+function terminal(){
+  var f=facts(), log=document.createElement('div'); log.className='term'; log.setAttribute('aria-live','polite');
+  var mine=openWin('Thallas Corp // Credential analysis',log,grant);     /* closing the window early also lets you in */
+  var lines=[
+    ['THALLAS CORP PERSONNEL GATEWAY',''],
+    ['> Opening uplink to Aquarius Research Base','OK'],
+    ['> Reading terminal signature',f.os+(f.scr?' / '+f.scr:'')],
+    ['> Locating surface station',f.city+(f.tz?' ('+f.tz+')':'')],
+    ['> Surface time',f.time||'UNKNOWN'],
+    ['> Language protocol',f.lang||'UNIVERSAL'],
+    ['> Searching visiting scholar registry','1 MATCH'],
+    ['  Rank: VISITING PROFESSOR',''],
+    ['> Verifying credentials','VALID'],
+    ['> Issuing expedition pass','DONE']
+  ];
+  var li=0, ci=0, cur=document.createElement('span'); cur.className='cur'; log.appendChild(cur);
+  function put(s){cur.insertAdjacentText('beforebegin',s); var b=log.parentNode; if(b)b.scrollTop=b.scrollHeight;}
+  function done(){
+    cur.remove();
+    var g=document.createElement('strong'); g.className='granted'; g.textContent='Access granted'; log.appendChild(g);
+    setTimeout(function(){if(back===mine)closeWin();},still?900:1500);
+  }
+  function step(){
+    if(back!==mine)return;                                               /* window was closed */
+    if(li>=lines.length)return done();
+    var L=lines[li];
+    if(still){put(L[0]+(L[1]?' ...... '+L[1]:'')+'\n'); li++; return setTimeout(step,120);}
+    if(ci<L[0].length){put(L[0].charAt(ci++)); return setTimeout(step,14);}
+    if(L[1]&&ci<L[0].length+6){put(ci===L[0].length?' .':'.'); ci++; return setTimeout(step,95);}
+    put((L[1]?' '+L[1]:'')+'\n'); li++; ci=0; setTimeout(step,170);
+  }
+  step();
+}
+if(root.classList.contains('gated'))runGate();
+$('replay').addEventListener('click',function(){try{sessionStorage.removeItem('dc-access');}catch(e){} location.reload();});
+
+/* ================= Pixel 3D models =================
+   A tiny software renderer: shapes are built from boxes, tapered boxes, prisms and balls, drawn
+   into a 240x180 picture with a depth buffer, lit from the upper left, then reduced to black and
+   white with the site's dither. White outlines trace each silhouette; black seams separate parts. */
+var CW=240, CH=180, B4=[0,8,2,10,12,4,14,6,3,11,1,9,15,7,13,5], INK=0xffeef5f2, WATER=0xff0d0f0c, PI=Math.PI;
+
+function part(v,f,k){                   /* k: how bright the surface is (1 = polished metal) */
+  var c=[0,0,0]; v.forEach(function(p){c[0]+=p[0];c[1]+=p[1];c[2]+=p[2];}); c=c.map(function(n){return n/v.length;});
+  f.forEach(function(q){                /* make every face wind outward from the part's centre */
+    var a=v[q[0]],b=v[q[1]],d=v[q[2]],m=[0,0,0];
+    var ux=b[0]-a[0],uy=b[1]-a[1],uz=b[2]-a[2],vx=d[0]-a[0],vy=d[1]-a[1],vz=d[2]-a[2];
+    var n=[uy*vz-uz*vy,uz*vx-ux*vz,ux*vy-uy*vx];
+    q.forEach(function(i){m[0]+=v[i][0];m[1]+=v[i][1];m[2]+=v[i][2];});
+    if(n[0]*(m[0]/q.length-c[0])+n[1]*(m[1]/q.length-c[1])+n[2]*(m[2]/q.length-c[2])<0)q.reverse();
+  });
+  return {v:v,f:f,k:k};
+}
+var BOXF=function(){return [[0,1,2,3],[4,5,6,7],[0,1,5,4],[1,2,6,5],[2,3,7,6],[3,0,4,7]];};
+function taper(x,y0,z,w0,d0,y1,w1,d1,k){   /* a box whose top can be smaller than its bottom */
+  return part([[x-w0/2,y0,z-d0/2],[x+w0/2,y0,z-d0/2],[x+w0/2,y0,z+d0/2],[x-w0/2,y0,z+d0/2],
+               [x-w1/2,y1,z-d1/2],[x+w1/2,y1,z-d1/2],[x+w1/2,y1,z+d1/2],[x-w1/2,y1,z+d1/2]],BOXF(),k);
+}
+function box(x,y,z,w,h,d,k){return taper(x,y-h/2,z,w,d,y+h/2,w,d,k);}
+function arm(px,py,ang,len,th,k){          /* a bar that starts at a pivot and leans by an angle */
+  var c=Math.cos(ang),s=Math.sin(ang),h=th/2,v=[];
+  [[-h,0,-h],[h,0,-h],[h,0,h],[-h,0,h],[-h,len,-h],[h,len,-h],[h,len,h],[-h,len,h]].forEach(function(p){v.push([px+p[0]*c-p[1]*s,py+p[0]*s+p[1]*c,p[2]]);});
+  return part(v,BOXF(),k);
+}
+function prism(axis,a0,a1,c1,c2,r0,r1,n,k,ph){   /* an n-sided column along x, y or z */
+  var v=[],f=[],i,bot=[],top=[];
+  function pt(a,r,t){var p=Math.cos(t)*r,q=Math.sin(t)*r; return axis==='y'?[c1+p,a,c2+q]:axis==='x'?[a,c1+p,c2+q]:[c1+p,c2+q,a];}
+  for(i=0;i<n;i++)v.push(pt(a0,r0,(ph||0)+i/n*2*PI));
+  for(i=0;i<n;i++)v.push(pt(a1,r1,(ph||0)+i/n*2*PI));
+  for(i=0;i<n;i++){bot.push(i);top.push(n+i);f.push([i,(i+1)%n,n+(i+1)%n,n+i]);}
+  f.push(bot,top);
+  return part(v,f,k);
+}
+function ball(x,y,z,rx,ry,rz,k){
+  var nu=12,nv=7,v=[[x,y+ry,z],[x,y-ry,z]],f=[],i,j;
+  for(j=1;j<nv;j++)for(i=0;i<nu;i++){var p=j/nv*PI,t=i/nu*2*PI;v.push([x+Math.sin(p)*Math.cos(t)*rx,y+Math.cos(p)*ry,z+Math.sin(p)*Math.sin(t)*rz]);}
+  function at(jj,ii){return 2+(jj-1)*nu+(ii%nu);}
+  for(i=0;i<nu;i++){f.push([0,at(1,i),at(1,i+1)]);f.push([1,at(nv-1,i),at(nv-1,i+1)]);for(j=1;j<nv-1;j++)f.push([at(j,i),at(j,i+1),at(j+1,i+1),at(j+1,i)]);}
+  return part(v,f,k);
+}
+
+var MODELS={
+  /* After the poster: a stepped hall with a vaulted roof and spire, a tall tower, a gold-rimmed platform. */
+  base:{s:86,cy:.2,yaw:.55,parts:[
+    prism('y',-.64,-.5,0,0,1.18,1.18,8,1,PI/8), prism('y',-.5,-.49,0,0,1.1,1.1,8,.26,PI/8),
+    taper(-.38,-.49,0,1,.78,-.2,.9,.68,.5), taper(-.38,-.2,0,.66,.56,.12,.58,.48,.6),
+    box(-.38,.22,.02,.4,.2,.4,.68), prism('z',-.18,.22,-.38,.32,.2,.2,10,.82),
+    box(-.5,.22,.225,.03,.2,.02,1), box(-.26,.22,.225,.03,.2,.02,1),
+    box(-.38,-.36,.385,.14,.24,.04,1), box(-.6,-.04,.275,.14,.2,.03,.95), box(-.16,-.04,.275,.14,.2,.03,.95),
+    taper(-.62,.12,-.12,.2,.2,.78,.13,.13,.6), taper(-.62,.78,-.12,.13,.13,.96,.03,.03,.92),
+    taper(.62,-.49,0,.46,.44,-.1,.38,.36,.5), taper(.62,-.1,0,.32,.3,.6,.27,.25,.62),
+    taper(.62,.6,0,.22,.2,.92,.17,.15,.72), taper(.62,.92,0,.13,.11,1.07,.03,.03,.92),
+    box(.62,.22,.15,.1,.36,.03,1), box(.9,-.38,.05,.14,.22,.24,.55), box(.9,-.4,.175,.06,.14,.02,1),
+    ball(.12,.46,.3,.11,.07,.07,1), box(.01,.46,.3,.03,.1,.06,.9)
+  ],spots:[
+    {p:[-.38,.5,.26],file:'base-1',label:'Sector 01'},
+    {p:[.62,.76,.13],file:'base-2',label:'Sector 02'},
+    {p:[.2,-.47,.9],file:'base-3',label:'Sector 03'}
+  ]},
+  /* After the key art: a round hull, a big front viewport, two lamps on stalks, a rudder plate. */
+  sub:{s:104,cy:.04,yaw:-.7,parts:[
+    ball(0,0,0,.62,.4,.44,.84),
+    prism('x',.5,.68,0,0,.23,.2,12,1), prism('x',.68,.7,0,0,.15,.15,12,.22),
+    box(.12,.05,.4,.14,.36,.08,.18), box(-.1,.05,.4,.14,.36,.08,.18), box(.12,.05,-.4,.14,.36,.08,.18), box(-.1,.05,-.4,.14,.36,.08,.18),
+    box(-.15,.42,.2,.05,.16,.05,.6), prism('x',-.24,-.05,.56,.2,.11,.125,10,.72), prism('x',-.05,-.035,.56,.2,.1,.1,10,1),
+    box(-.15,.42,-.2,.05,.16,.05,.6), prism('x',-.24,-.05,.56,-.2,.11,.125,10,.72), prism('x',-.05,-.035,.56,-.2,.1,.1,10,1),
+    box(-.68,0,0,.22,.08,.08,.6), box(-.82,0,0,.05,.5,.3,.92),
+    box(-.2,-.18,.5,.36,.04,.26,.92), box(-.2,-.18,-.5,.36,.04,.26,.92),
+    prism('y',-.47,-.36,0,0,.12,.15,10,1)
+  ],spots:[
+    {p:[.74,.02,0],file:'sub-1',label:'Submersible: 01'},
+    {p:[-.14,.72,0],file:'sub-2',label:'Submersible: 02'}
+  ]},
+  /* After the telemetry poster: a jointed arm on a platform, carrying a dart gun with a rear camera. */
+  gun:{s:92,cy:-.04,yaw:.5,parts:[
+    prism('y',-.78,-.66,0,0,.8,.8,8,1,PI/8), prism('y',-.66,-.65,0,0,.74,.74,8,.26,PI/8),
+    taper(0,-.65,0,.42,.42,-.52,.3,.3,.75),
+    arm(0,-.54,-.42,.5,.17,.7), prism('z',-.12,.12,.204,-.064,.11,.11,10,.92),
+    arm(.204,-.064,.7,.46,.14,.7), prism('z',-.1,.1,-.092,.288,.09,.09,10,.92),
+    box(.05,.4,0,.62,.2,.22,.8), box(0,.52,0,.3,.06,.14,.58),
+    box(-.42,.36,0,.24,.24,.26,.42), prism('x',-.62,-.54,.36,0,.075,.075,8,1),
+    prism('x',.36,.72,.4,0,.055,.045,8,.7), prism('x',.72,1.02,.4,0,.022,.008,6,1),
+    box(-.1,.68,0,.025,.26,.025,1)
+  ],spots:[
+    {p:[.9,.46,0],file:'gun-1',label:'Dart Gun: 01'},
+    {p:[-.42,.54,.1],file:'gun-2',label:'Dart Gun: 02'}
+  ]}
+};
+Object.keys(MODELS).forEach(function(key){
+  var m=MODELS[key], V=[], F=[];
+  m.parts.forEach(function(p,pi){var o=V.length; p.v.forEach(function(q){V.push(q);}); p.f.forEach(function(q){F.push({i:q.map(function(n){return n+o;}),k:p.k,id:pi+1});});});
+  m.V=V; m.F=F; m.T=new Float32Array(V.length*3);
+});
+var BG=new Uint8Array(CW*CH);            /* backdrop: faint shafts of light from above, a few motes */
+(function(){for(var y=0,i=0;y<CH;y++)for(var x=0;x<CW;x++,i++){
+  var v=(.035+.045*Math.sin(x*.085+1)+.03*Math.sin(x*.21))*(1-y/CH*1.3);
+  BG[i]=(v>(B4[(y&3)*4+(x&3)]+.5)/16||(x*7+y*13)%211===0)?1:0;}})();
+var LX=-.45, LY=.68, LZ=.58;
+
+function Viewer(el){
+  var me=this;
+  this.stage=el.querySelector('.stage'); this.cv=el.querySelector('canvas'); this.g=this.cv.getContext('2d');
+  this.img=this.g.createImageData(CW,CH); this.px=new Uint32Array(this.img.data.buffer);
+  this.z=new Float32Array(CW*CH); this.id=new Uint8Array(CW*CH); this.sh=new Uint8Array(CW*CH);
+  this.pitch=.4; this.yaw=0; this.touched=-1e9; this.dirty=true; this.seen=true; this.spots=[];
+  var lx=null;
+  this.stage.addEventListener('pointerdown',function(e){
+    if(e.target.closest('.spot'))return;
+    lx=e.clientX; me.touched=performance.now(); try{me.stage.setPointerCapture(e.pointerId);}catch(_){}
+  });
+  this.stage.addEventListener('pointermove',function(e){
+    if(lx===null)return;
+    me.yaw+=(e.clientX-lx)*.012; lx=e.clientX; me.touched=performance.now(); me.dirty=true;
+  });
+  function up(){lx=null;}
+  this.stage.addEventListener('pointerup',up); this.stage.addEventListener('pointercancel',up);
+  this.cv.addEventListener('keydown',function(e){
+    if(e.key!=='ArrowLeft'&&e.key!=='ArrowRight')return;
+    e.preventDefault(); me.yaw+=e.key==='ArrowLeft'?-.2:.2; me.touched=performance.now(); me.dirty=true;
+  });
+  [].forEach.call(el.querySelectorAll('[data-turn]'),function(b){
+    b.addEventListener('click',function(){me.yaw+=.6*(+b.getAttribute('data-turn')); me.touched=performance.now(); me.dirty=true;});
+  });
+  if(window.IntersectionObserver)new IntersectionObserver(function(es){me.seen=es[0].isIntersecting; me.dirty=true;}).observe(this.stage);
+}
+Viewer.prototype.show=function(key){
+  var me=this, m=MODELS[key]; this.m=m; this.yaw=m.yaw; this.dirty=true;
+  this.spots.forEach(function(s){s.remove();}); this.spots=[];
+  m.spots.forEach(function(s){
+    var b=document.createElement('button'); b.type='button'; b.className='spot';
+    b.setAttribute('data-file',s.file); b.setAttribute('aria-label','Open file: '+s.label); b.title=s.label;
+    me.stage.appendChild(b); me.spots.push(b);
+  });
+};
+Viewer.prototype.tri=function(ax,ay,az,bx,by,bz,cx,cy,cz,s,id){
+  var area=(bx-ax)*(cy-ay)-(by-ay)*(cx-ax); if(!area)return;
+  var x0=Math.max(0,Math.floor(Math.min(ax,bx,cx))), x1=Math.min(CW-1,Math.ceil(Math.max(ax,bx,cx)));
+  var y0=Math.max(0,Math.floor(Math.min(ay,by,cy))), y1=Math.min(CH-1,Math.ceil(Math.max(ay,by,cy)));
+  var inv=1/area, z=this.z, idb=this.id, sh=this.sh, x, y;
+  for(y=y0;y<=y1;y++){var py=y+.5;
+    for(x=x0;x<=x1;x++){var px=x+.5;
+      var w0=((bx-px)*(cy-py)-(by-py)*(cx-px))*inv, w1=((cx-px)*(ay-py)-(cy-py)*(ax-px))*inv, w2=1-w0-w1;
+      if(w0<0||w1<0||w2<0)continue;
+      var d=w0*az+w1*bz+w2*cz, i=y*CW+x;
+      if(d>z[i]){z[i]=d;idb[i]=id;sh[i]=s;}
+    }}
+};
+Viewer.prototype.draw=function(){
+  var m=this.m, V=m.V, T=m.T, F=m.F, S=m.s, i, n;
+  var cy=Math.cos(this.yaw), sy=Math.sin(this.yaw), cp=Math.cos(this.pitch), sp=Math.sin(this.pitch);
+  function tx(p,o,t){var x=p[0]*cy+p[2]*sy, z=-p[0]*sy+p[2]*cy, y=p[1]-m.cy; t[o]=CW/2+x*S; t[o+1]=CH/2-(y*cp-z*sp)*S; t[o+2]=y*sp+z*cp;}
+  for(i=0;i<V.length;i++)tx(V[i],i*3,T);
+  this.z.fill(-1e9); this.id.fill(0);
+  for(n=0;n<F.length;n++){
+    var q=F[n].i, a=q[0]*3, b=q[1]*3, c=q[2]*3;
+    var ux=T[b]-T[a], uy=-(T[b+1]-T[a+1]), uz=(T[b+2]-T[a+2])*S, vx=T[c]-T[a], vy=-(T[c+1]-T[a+1]), vz=(T[c+2]-T[a+2])*S;
+    var nx=uy*vz-uz*vy, ny=uz*vx-ux*vz, nz=ux*vy-uy*vx;
+    if(nz<=0)continue;                                                    /* facing away */
+    var lam=(nx*LX+ny*LY+nz*LZ)/Math.sqrt(nx*nx+ny*ny+nz*nz), s=Math.round((.15+.85*Math.max(0,lam))*F[n].k*255);
+    for(i=1;i<q.length-1;i++){b=q[i]*3;c=q[i+1]*3;this.tri(T[a],T[a+1],T[a+2],T[b],T[b+1],T[b+2],T[c],T[c+1],T[c+2],s,F[n].id);}
+  }
+  var px=this.px, idb=this.id, sh=this.sh, x, y;
+  for(y=0,i=0;y<CH;y++)for(x=0;x<CW;x++,i++){
+    var id=idb[i], on;
+    if(!id)on=BG[i];
+    else if((x>0&&!idb[i-1])||(x<CW-1&&!idb[i+1])||(y>0&&!idb[i-CW])||(y<CH-1&&!idb[i+CW]))on=1;        /* silhouette */
+    else if((x<CW-1&&idb[i+1]!==id)||(y<CH-1&&idb[i+CW]!==id))on=0;                                      /* seam between parts */
+    else on=sh[i]/255>(B4[(y&3)*4+(x&3)]+.5)/16?1:0;
+    px[i]=on?INK:WATER;
+  }
+  this.g.putImageData(this.img,0,0);
+  var t=[0,0,0];
+  for(i=0;i<this.spots.length;i++){                                       /* keep each diamond on its spot */
+    tx(m.spots[i].p,0,t);
+    var bx=Math.round(t[0]), by=Math.round(t[1]), k=by*CW+bx;
+    this.spots[i].style.left=(t[0]/CW*100)+'%'; this.spots[i].style.top=(t[1]/CH*100)+'%';
+    this.spots[i].classList.toggle('behind',bx>=0&&bx<CW&&by>=0&&by<CH&&this.z[k]>t[2]+.08);
+  }
+};
+
+var base=new Viewer($('v-base')), eq=new Viewer($('v-eq')), viewers=[base,eq];
+base.show('base'); eq.show('sub');
+[].forEach.call(document.querySelectorAll('[data-model]'),function(b){
+  b.addEventListener('click',function(){
+    [].forEach.call(document.querySelectorAll('[data-model]'),function(o){o.setAttribute('aria-pressed',o===b?'true':'false');});
+    eq.show(b.getAttribute('data-model'));
+    $('eq-sub').textContent=b.getAttribute('data-model')==='gun'?'Dart gun · tag creatures with marine telemetry':'Submersible';
+  });
+});
+var last=0;
+function tick(now){
+  requestAnimationFrame(tick);
+  if(now-last<33)return;
+  var dt=Math.min(.1,(now-last)/1000); last=now;
+  viewers.forEach(function(v){
+    if(!v.seen||root.classList.contains('gated'))return;
+    if(!still&&now-v.touched>3500){v.yaw+=dt*.32; v.dirty=true;}        /* turns slowly until you take hold of it */
+    if(v.dirty){v.draw(); v.dirty=false;}
+  });
+}
+viewers.forEach(function(v){v.draw();});
+requestAnimationFrame(tick);
+})();
+</script>
+</body>
+</html>
