@@ -349,7 +349,8 @@ html.win-open{overflow:hidden}
 
 <script src="../assets/site.js?v=6f5cbb11"></script>
 <script src="dc-base.js?v=6f5cbb11"></script>  <!-- the research base mesh, converted from the game's own 3D model, on an octagonal base -->
-<script src="dc-sub.js?v=6f5cbb11"></script>   <!-- the submersible mesh, converted from the game's own 3D model -->
+<script src="dc-sub.js?v=6f5cbb11"></script>
+<script src="dc-gun.js?v=6f5cbb11"></script>   <!-- the dart gun mesh, converted from the game's own 3D model -->   <!-- the submersible mesh, converted from the game's own 3D model -->
 <script>
 (function(){
 'use strict';
@@ -853,6 +854,10 @@ try{if(window.DC_MESH&&DC_MESH.sub)MODELS.sub=meshModel(DC_MESH.sub,{s:84,cy:0,y
   fix:function(x,y,z){return [z*.9786-x*.206,y,-z*.206-x*.9786];},   /* turn the model so its length runs left to right, nose square to the axis */
   spots:[{p:[-.33,.02,.77],file:'sub-1',label:MODELS.sub.spots[0].label},        /* the side dome */
          {p:[-.87,.6,.46],file:'sub-2',label:MODELS.sub.spots[1].label}]});}catch(e){}   /* a lamp on its stalk */
+try{if(window.DC_MESH&&DC_MESH.gun)MODELS.gun=meshModel(DC_MESH.gun,{s:98,cy:0,yaw:.6,
+  fix:function(x,y,z){return [z,y,-x];},            /* turn the model so the barrel runs left to right */
+  spots:[{p:[-.65,.25,-.02],file:'gun-1',label:MODELS.gun.spots[0].label},        /* the dart at the muzzle */
+         {p:[.66,.52,0],file:'gun-2',label:MODELS.gun.spots[1].label}]});}catch(e){}       /* top of the turret body */
 Object.keys(MODELS).forEach(function(key){
   var m=MODELS[key], V=[], F=[]; if(m.V)return;
   m.parts.forEach(function(p,pi){var o=V.length; p.v.forEach(function(q){V.push(q);}); p.f.forEach(function(q){F.push({i:q.map(function(n){return n+o;}),k:p.k,id:pi+1});});});
