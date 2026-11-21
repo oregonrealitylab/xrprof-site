@@ -348,6 +348,7 @@ html.win-open{overflow:hidden}
 </template>
 
 <script src="../assets/site.js?v=6f5cbb11"></script>
+<script src="dc-base.js?v=6f5cbb11"></script>  <!-- the research base mesh, converted from the game's own 3D model, on an octagonal base -->
 <script src="dc-sub.js?v=6f5cbb11"></script>   <!-- the submersible mesh, converted from the game's own 3D model -->
 <script>
 (function(){
@@ -840,9 +841,14 @@ function meshModel(d,o){
   for(i=0;i<n;i++)u[i]=bin.charCodeAt(i);
   var pos=new Int16Array(u.buffer,0,d.nv*3), idx=new Uint16Array(u.buffer,d.nv*6,d.nt*3);
   for(i=0;i<d.nv;i++)V.push(o.fix(pos[i*3]/d.q,pos[i*3+1]/d.q,pos[i*3+2]/d.q));
-  d.parts.forEach(function(p,pi){for(i=p[0];i<p[0]+p[1];i++)F.push({i:[idx[i*3],idx[i*3+1],idx[i*3+2]],k:p[2],id:pi+1});});
+  d.parts.forEach(function(p,pi){for(i=p[0];i<p[0]+p[1];i++)F.push({i:[idx[i*3],idx[i*3+1],idx[i*3+2]],k:p[2],id:p[3]||pi+1});});
   o.V=V; o.F=F; o.T=new Float32Array(V.length*3); return o;
 }
+try{if(window.DC_MESH&&DC_MESH.base)MODELS.base=meshModel(DC_MESH.base,{s:98,cy:-.03,yaw:.5,
+  fix:function(x,y,z){return [x,y,z];},
+  spots:[{p:[0,.1,.23],file:'base-1',label:MODELS.base.spots[0].label},          /* roof of the central hub */
+         {p:[.52,.63,-.28],file:'base-2',label:MODELS.base.spots[1].label},      /* top of a tower */
+         {p:[-.27,-.3,.2],file:'base-3',label:MODELS.base.spots[2].label}]});}catch(e){}   /* a wing of the hub */
 try{if(window.DC_MESH&&DC_MESH.sub)MODELS.sub=meshModel(DC_MESH.sub,{s:84,cy:0,yaw:-.7,
   fix:function(x,y,z){return [z*.9786-x*.206,y,-z*.206-x*.9786];},   /* turn the model so its length runs left to right, nose square to the axis */
   spots:[{p:[-.33,.02,.77],file:'sub-1',label:MODELS.sub.spots[0].label},        /* the side dome */
