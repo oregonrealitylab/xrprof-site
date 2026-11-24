@@ -107,6 +107,16 @@ html.win-open{overflow:hidden}
 .term{font-size:14px;line-height:1.7;min-height:250px;white-space:pre-wrap;overflow-wrap:anywhere}
 .term .cur::after{content:"\2588";animation:blink 1s steps(1) infinite}
 .granted{display:block;margin-top:14px;font-family:var(--deco);font-size:clamp(38px,8vw,60px);line-height:1.1;letter-spacing:.08em;text-transform:uppercase;text-align:center;background:var(--ink);color:var(--water);padding:6px;animation:blink .5s steps(1) 3}
+/* ---------- Enrollment terminal: the glasses above the log ---------- */
+.boot{display:flex;flex-direction:column;gap:10px}
+.boot-v{align-self:center;width:min(100%,300px,34vh*4/3)}
+.boot-v .stage{position:relative;aspect-ratio:4/3;border:2px solid var(--ink)}
+.boot-v canvas{display:block;width:100%;height:100%;image-rendering:pixelated}
+.boot-say{margin:0;text-align:center;font-family:var(--display);font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink)}
+.boot-say .dots::after{content:"";animation:dots 1.2s steps(4) infinite}
+@keyframes dots{0%{content:""}25%{content:"."}50%{content:".."}75%{content:"..."}}
+.boot .term{min-height:0;height:10.5em;overflow-y:auto}
+@media (prefers-reduced-motion:reduce){.boot-say .dots::after{animation:none;content:"..."}}
 /* ---------- Welcome video ---------- */
 .btn.big{font-size:clamp(17px,2.6vw,22px);padding:14px 26px;cursor:pointer}
 .film{position:relative;align-self:center;width:min(100%,56vh,520px);aspect-ratio:1;border:2px solid var(--ink);background:var(--void);cursor:pointer;overflow:hidden}
@@ -499,7 +509,21 @@ function facts(){
 }
 function terminal(){
   var f=facts(), log=document.createElement('div'); log.className='term'; log.setAttribute('aria-live','polite');
-  var mine=openWin('Thallas Corp // Credential analysis',log,grant);     /* closing the window early also lets you in */
+  /* above the log: a pair of glasses turning while the "program" loads onto them */
+  var wrap=document.createElement('div'); wrap.className='boot';
+  wrap.innerHTML='<div class="boot-v"><div class="stage"><canvas width="240" height="180" aria-hidden="true"></canvas></div></div><p class="boot-say">Preparing SPECS for Thallas uplink<span class="dots" aria-hidden="true"></span></p>';
+  wrap.appendChild(log);
+  var mine=openWin('Thallas Corp // Credential analysis',wrap,grant);     /* closing the window early also lets you in */
+  try{(function(){
+    var v=new Viewer(wrap.querySelector('.boot-v')), t0=0; v.show('specs'); v.pitch=.3; v.draw();
+    if(still)return;
+    (function spin(now){
+      if(back!==mine)return;
+      requestAnimationFrame(spin);
+      if(now-t0<40)return;
+      v.yaw+=Math.min(.1,(now-t0)/1000)*1.5; t0=now; v.draw();
+    })(0);
+  })();}catch(e){}
   var lines=[
     ['THALLAS CORP PERSONNEL GATEWAY',''],
     ['> Opening uplink to Aquarius Research Base','OK'],
@@ -513,10 +537,12 @@ function terminal(){
     ['> Issuing expedition pass','DONE']
   ];
   var li=0, ci=0, cur=document.createElement('span'); cur.className='cur'; log.appendChild(cur);
-  function put(s){cur.insertAdjacentText('beforebegin',s); var b=log.parentNode; if(b)b.scrollTop=b.scrollHeight;}
+  function put(s){cur.insertAdjacentText('beforebegin',s); log.scrollTop=log.scrollHeight;}
   function done(){
     cur.remove();
     var g=document.createElement('strong'); g.className='granted'; g.textContent='Access granted'; log.appendChild(g);
+    wrap.querySelector('.boot-say').textContent='SPECS ready';
+    log.scrollTop=log.scrollHeight; requestAnimationFrame(function(){log.scrollTop=log.scrollHeight;});
     setTimeout(function(){if(back===mine)closeWin();},still?900:1500);
   }
   function step(){
@@ -982,6 +1008,16 @@ function pose(m,t){
     for(j=0;j<3;j++)v[j]=wa*(B[ja+j*4]*x+B[ja+j*4+1]*y+B[ja+j*4+2]*z+B[ja+j*4+3])+wb*(B[jb+j*4]*x+B[jb+j*4+1]*y+B[jb+j*4+2]*z+B[jb+j*4+3]);
   }
 }
+/* A plain pair of thick-framed glasses for the enrollment terminal. */
+MODELS.specs={s:78,cy:0,yaw:.6,spots:[],parts:(function(){
+  var P=[box(0,.3,.7,1.9,.14,.13,.4), box(0,.13,.7,.3,.12,.1,.4)], sx;
+  [-1,1].forEach(function(d){
+    P.push(box(d*.5,-.3,.7,.8,.1,.13,.4), box(d*.89,0,.7,.12,.7,.15,.4), box(d*.13,-.05,.7,.1,.5,.12,.4),
+           box(d*.5,0,.69,.68,.52,.03,1),                                             /* lens */
+           box(d*.92,.22,-.08,.08,.14,1.5,.4), box(d*.92,.1,-.86,.08,.34,.14,.4));    /* temple and its ear tip */
+  });
+  return P;
+})()};
 MODELS.oct={s:100,cy:0,yaw:.5,parts:[ball(0,.2,0,.4,.5,.4,.8)],spots:[]};          /* stand-in if the file fails to load */
 try{if(window.DC_MESH&&DC_MESH.octo)(function(d){
   var m=meshModel(d,{s:80,cy:0,yaw:.5,fix:function(x,y,z){return [x,y,z];},spots:[]});
