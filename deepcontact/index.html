@@ -1008,13 +1008,15 @@ function pose(m,t){
     for(j=0;j<3;j++)v[j]=wa*(B[ja+j*4]*x+B[ja+j*4+1]*y+B[ja+j*4+2]*z+B[ja+j*4+3])+wb*(B[jb+j*4]*x+B[jb+j*4+1]*y+B[jb+j*4+2]*z+B[jb+j*4+3]);
   }
 }
-/* A plain pair of thick-framed glasses for the enrollment terminal. */
-MODELS.specs={s:78,cy:0,yaw:.6,spots:[],parts:(function(){
-  var P=[box(0,.3,.7,1.9,.14,.13,.4), box(0,.13,.7,.3,.12,.1,.4)], sx;
+/* A plain pair of round glasses for the enrollment terminal: each rim is a short 20-sided
+   column, with a brighter lens disc standing a hair proud of it on both faces. */
+MODELS.specs={s:80,cy:0,yaw:.6,spots:[],parts:(function(){
+  var P=[prism('x',-.16,.16,.1,.7,.06,.06,10,.45)];                                    /* bridge: a round bar */
   [-1,1].forEach(function(d){
-    P.push(box(d*.5,-.3,.7,.8,.1,.13,.4), box(d*.89,0,.7,.12,.7,.15,.4), box(d*.13,-.05,.7,.1,.5,.12,.4),
-           box(d*.5,0,.69,.68,.52,.03,1),                                             /* lens */
-           box(d*.92,.22,-.08,.08,.14,1.5,.4), box(d*.92,.1,-.86,.08,.34,.14,.4));    /* temple and its ear tip */
+    P.push(prism('z',.62,.78,d*.52,0,.42,.42,20,.45),                                  /* rim */
+           prism('z',.6,.8,d*.52,0,.32,.32,20,1),                                      /* lens */
+           prism('z',-.7,.7,d*.94,.12,.055,.045,10,.45),                               /* temple: a round rod */
+           prism('y',-.14,.17,d*.94,-.72,.03,.055,10,.45));                   /* ear tip: a short rod curving down */
   });
   return P;
 })()};
