@@ -179,7 +179,7 @@ html.win-open{overflow:hidden}
         <p class="kick">Expedition file · Wearable AR for Specs</p>
         <h1 id="title" tabindex="-1">Deep Contact</h1>
         <!-- EDIT: the tagline. -->
-        <p class="lead">Your first day aboard a deep-sea research facility. A rare octopus to find. An expedition that is not what it seems.</p>
+        <p class="lead">Welcome to Thallas Corp. and The Aquarius Research Base, a state-of-the-art deep-sea research facility. Please review the expedition materials before transiting to the base.</p>
       </div>
       <div class="frame"><img src="dc-key.png" width="504" height="504" alt="Deep Contact key art: a submersible with glowing lamps between two tentacles, in pixel art"></div>
     </section>
@@ -191,7 +191,7 @@ html.win-open{overflow:hidden}
         <h2>Aquarius Research Base</h2>
         <p class="sub">A modern Atlantis</p>
       </header>
-      <p class="intro">The state of the art underwater research facility hosts interdisciplinary scientists to study the wonders of our ocean.</p>
+      <p class="intro">The state-of-the-art underwater research facility hosts interdisciplinary scientists to study the wonders of our ocean.</p>
       <div class="cta"><button type="button" class="btn big" id="watch"><span aria-hidden="true">&#9654;&ensp;</span>Watch Welcome Video</button></div>
       <div class="viewer" id="v-base">
         <div class="frame"><div class="stage"><canvas width="240" height="180" tabindex="0" aria-label="Rotatable model of the Aquarius Research Base. Use the left and right arrow keys to turn it."></canvas></div></div>
@@ -224,8 +224,7 @@ html.win-open{overflow:hidden}
         <h2>Target Specimen</h2>
         <p class="sub">Octopus</p>
       </header>
-      <!-- EDIT: one or two sentences introducing the octopus. -->
-      <p class="intro">[Introduce the octopus in a sentence or two.]</p>
+      <!-- EDIT: to introduce the octopus, add a line here: <p class="intro">Your sentence.</p> -->
       <div class="viewer" id="v-oct">
         <div class="frame"><div class="stage"><canvas width="240" height="180" tabindex="0" aria-label="Rotatable model of the octopus, swimming in a loop. Use the left and right arrow keys to turn it."></canvas></div></div>
         <div class="vctl"><button type="button" class="mini" data-turn="-1">&#9664; Turn</button><span>Drag to rotate · tap a diamond</span><button type="button" class="mini" data-turn="1">Turn &#9654;</button></div>
@@ -241,12 +240,12 @@ html.win-open{overflow:hidden}
       <div class="people">
         <article class="pcard">
           <div class="slot"><span>Portrait 3:4</span></div>
-          <h3>Dr. Flores</h3><p class="role">[Role]</p>
+          <h3>Dr. Flores</h3><p class="role">Lead Marine Researcher</p>
           <button type="button" class="mini" data-file="p-flores">Open file</button>
         </article>
         <article class="pcard">
           <div class="slot"><span>Portrait 3:4</span></div>
-          <h3>Thaddeus Givens</h3><p class="role">[Role]</p>
+          <h3>Thaddeus Givens</h3><p class="role">CEO, Thallas Corp.</p>
           <button type="button" class="mini" data-file="p-givens">Open file</button>
         </article>
         <article class="pcard">
@@ -271,7 +270,7 @@ html.win-open{overflow:hidden}
       <div class="people">
         <article class="pcard">
           <div class="slot"><img src="../assets/portrait.png" alt="Pixel-art portrait of Daniel Pimentel"></div>
-          <h3>Dr. Daniel Pimentel</h3><p class="role">Creator</p>
+          <h3>Dr. Daniel Pimentel</h3><p class="role">Lead Developer</p>
           <button type="button" class="mini" data-file="c-pimentel">Open file</button>
         </article>
         <article class="pcard">
@@ -309,85 +308,85 @@ html.win-open{overflow:hidden}
      EDIT: replace the text in [square brackets]; to add a picture, replace the <span> in the
      slot with <img src="your-file.png" alt="...">. data-bar is the window's title bar.
      ==================================================================================== -->
-<template id="file-base-1" data-bar="Aquarius Research Base // Sector 01">
-  <h3>Sector 01</h3>
+<template id="file-base-1" data-bar="Aquarius Research Base // Reconnaissance">
+  <h3>Reconnaissance</h3>
   <div class="cols"><div class="slot"><img src="dc-poster-base.png" alt="Poster: Aquarius Base, a modern Atlantis"></div>
-  <div class="text"><p>[Name this part of the base and say what happens here.]</p><p>[A second paragraph, if you need one.]</p></div></div>
+  <div class="text"><p>Scientists pilot a remotely operated sub (ROV) across the seafloor here, searching for tool fragments thought to have been made by an intelligent species of octopus.</p></div></div>
 </template>
-<template id="file-base-2" data-bar="Aquarius Research Base // Sector 02">
-  <h3>Sector 02</h3>
+<template id="file-base-2" data-bar="Aquarius Research Base // Symbology">
+  <h3>Symbology</h3>
   <div class="cols"><div class="slot"><span>Image 3:4</span></div>
-  <div class="text"><p>[Name this part of the base and say what happens here.]</p></div></div>
+  <div class="text"><p>Ongoing research suggests that symbols found throughout nearshore environments and caves are part of a visual language for a specific species of octopus. Scientists are working to decode their meaning.</p></div></div>
 </template>
-<template id="file-base-3" data-bar="Aquarius Research Base // Sector 03">
-  <h3>Sector 03</h3>
+<template id="file-base-3" data-bar="Aquarius Research Base // Telemetry">
+  <h3>Telemetry</h3>
   <div class="cols"><div class="slot"><span>Image 3:4</span></div>
-  <div class="text"><p>[Name this part of the base and say what happens here.]</p></div></div>
+  <div class="text"><p>Researchers here tag marine animals with Thallas sensors whose pings show their movements, feeding and social behaviour, and they now aim to tag the octopus itself.</p></div></div>
 </template>
-<template id="file-sub-1" data-bar="Equipment // Submersible 01">
-  <h3>Submersible: 01</h3>
+<template id="file-sub-1" data-bar="Equipment // Submersible // Hydrophone Sonar Array">
+  <h3>Hydrophone Sonar Array</h3>
   <div class="cols"><div class="slot"><span>Image 3:4</span></div>
-  <div class="text"><p>[Name this part of the submersible and say what it does.]</p></div></div>
+  <div class="text"><p>A ring of underwater microphones along the hull sends out sonar pulses and listens for their echoes, mapping the seafloor in real time while Thallas AI picks out animal calls from the background noise of the deep.</p></div></div>
 </template>
-<template id="file-sub-2" data-bar="Equipment // Submersible 02">
-  <h3>Submersible: 02</h3>
+<template id="file-sub-2" data-bar="Equipment // Submersible // Targeted Extraction System">
+  <h3>Targeted Extraction System</h3>
   <div class="cols"><div class="slot"><span>Image 3:4</span></div>
-  <div class="text"><p>[Name this part of the submersible and say what it does.]</p></div></div>
+  <div class="text"><p>The submersible picks out a single point of interest on the seafloor and collects only what scientists need from it, then seals each sample away so it reaches the lab undisturbed.</p></div></div>
 </template>
-<template id="file-gun-1" data-bar="Equipment // Dart Gun 01">
-  <h3>Dart Gun: 01</h3>
+<template id="file-gun-1" data-bar="Equipment // Dart Gun // GPS Tracking Dart">
+  <h3>GPS Tracking Dart</h3>
   <div class="cols"><div class="slot"><img src="dc-poster-telemetry.png" alt="Poster: tag creatures with marine telemetry"></div>
-  <div class="text"><p>Tag creatures with marine telemetry.</p><p>[Say how the player uses the dart gun.]</p></div></div>
+  <div class="text"><p>Each dart carries a small biotag that clings to the creature&rsquo;s skin and reports its position live to the research base, recording every movement, feeding stop and social encounter.</p></div></div>
 </template>
-<template id="file-gun-2" data-bar="Equipment // Dart Gun 02">
-  <h3>Dart Gun: 02</h3>
+<template id="file-gun-2" data-bar="Equipment // Dart Gun // Pneumatic Launch Chamber">
+  <h3>Pneumatic Launch Chamber</h3>
   <div class="cols"><div class="slot"><span>Image 3:4</span></div>
-  <div class="text"><p>[Name this part of the dart gun and say what it does.]</p></div></div>
+  <div class="text"><p>A cartridge of compressed gas powers the shot, and pulling back the handle loads the chamber with more pressure, so the gas can drive the dart through the water without hurting the creature.</p></div></div>
 </template>
-<template id="file-oct-1" data-bar="Target Specimen // Octopus 01">
-  <h3>Octopus: 01</h3>
+<template id="file-oct-1" data-bar="Target Specimen // Chromatophores">
+  <h3>Chromatophores</h3>
   <div class="cols"><div class="slot"><span>Image 3:4</span></div>
-  <div class="text"><p>[Name this part of the octopus and say what is known about it.]</p></div></div>
+  <div class="text"><p>Thousands of tiny pigment sacs in the skin stretch and shrink in a fraction of a second, letting the octopus blend into its surroundings. Our research suggests these shifting patterns may also be a form of language.</p></div></div>
 </template>
-<template id="file-oct-2" data-bar="Target Specimen // Octopus 02">
-  <h3>Octopus: 02</h3>
+<template id="file-oct-2" data-bar="Target Specimen // Ink Symbols">
+  <h3>Ink Symbols</h3>
   <div class="cols"><div class="slot"><span>Image 3:4</span></div>
-  <div class="text"><p>[Name this part of the octopus and say what is known about it.]</p></div></div>
+  <div class="text"><p>Octopuses are known to release clouds of ink to escape predators. This one shapes its ink into deliberate forms and visual symbols, a behavior never recorded before that may be a way of communicating.</p></div></div>
 </template>
-<template id="file-oct-3" data-bar="Target Specimen // Octopus 03">
-  <h3>Octopus: 03</h3>
+<template id="file-oct-3" data-bar="Target Specimen // Independent Arms">
+  <h3>Independent Arms</h3>
   <div class="cols"><div class="slot"><span>Image 3:4</span></div>
-  <div class="text"><p>[Name this part of the octopus and say what is known about it.]</p></div></div>
+  <div class="text"><p>About two-thirds of an octopus&rsquo;s neurons sit in its arms rather than its brain, so each arm can touch, taste and make decisions on its own. In effect, the creature thinks with its whole body.</p></div></div>
 </template>
 <template id="file-p-flores" data-bar="Personnel // Dr. Flores">
   <h3>Dr. Flores</h3>
   <div class="cols"><div class="slot"><span>Portrait 3:4</span></div>
-  <div class="text"><p>[Role aboard Aquarius.]</p><p>[A short profile.]</p></div></div>
+  <div class="text"><p>Lead Marine Researcher.</p><p>A world-renowned marine scientist and conservationist, Dr. Flores has spent months in Aquarius Research Base studying social interactions among octopuses. Now a recluse, little is known about the work she is conducting on base.</p></div></div>
 </template>
 <template id="file-p-givens" data-bar="Personnel // Thaddeus Givens">
   <h3>Thaddeus Givens</h3>
   <div class="cols"><div class="slot"><span>Portrait 3:4</span></div>
-  <div class="text"><p>[Role aboard Aquarius.]</p><p>[A short profile.]</p></div></div>
+  <div class="text"><p>CEO, Thallas Corp.</p><p>The founder and CEO of Thallas Corp., a global leader in AI systems, built Aquarius Research Base as a modern-day Atlantis to invest in marine scientific discovery and conservation.</p></div></div>
 </template>
 <template id="file-p-quark" data-bar="Personnel // Quark">
   <h3>Quark</h3>
   <div class="cols"><div class="slot"><span>Portrait 3:4</span></div>
-  <div class="text"><p>The robot.</p><p>[A short profile.]</p></div></div>
+  <div class="text"><p>Quark is a Thallas Corp. assistance drone designated for use within Aquarius Research Base. It facilitates training, assists scientists on key missions, and has advanced human and non-human translation capabilities.</p></div></div>
 </template>
 <template id="file-c-pimentel" data-bar="Credits // Dr. Daniel Pimentel">
   <h3>Dr. Daniel Pimentel</h3>
   <div class="cols"><div class="slot"><img src="../assets/portrait.png" alt="Pixel-art portrait of Daniel Pimentel"></div>
-  <div class="text"><p>Creator of Deep Contact. Director of the University of Oregon&rsquo;s Reality Lab.</p><p><a href="../about-me/">About Daniel</a></p></div></div>
+  <div class="text"><p>Dr. Danny Pimentel is an Associate Professor and Director of the University of Oregon&rsquo;s Reality Lab in Portland, Oregon. He is also a Visiting Professor at OceanX, Ambassador at Specs, and serves on the Science &amp; Technology Advisory Council at The Hydrous.</p><p><a href="../about-me/">About Daniel</a></p></div></div>
 </template>
 <template id="file-c-sirintip" data-bar="Credits // Sirintip">
   <h3>Sirintip</h3>
   <div class="cols"><div class="slot"><img src="dc-sirintip.png" width="504" height="672" alt="Pixel-art portrait of Sirintip"></div>
-  <div class="text"><p>Music.</p><p>[A line about the score, and a link.]</p></div></div>
+  <div class="text"><p>Sirintip (Sirintip Phasuk) is a New York-based Swedish-Thai singer, composer, producer, and interdisciplinary research artist whose work blends jazz, avant-pop, electronic, Thai traditional, and classical music. Born in Bangkok, Thailand and raised in Sweden, her music and performances frequently explore themes of climate science, nature, identity, empathy, and sustainability.</p><p><a href="https://www.sirintipofficial.com/epk" rel="noopener">sirintipofficial.com</a></p></div></div>
 </template>
 <template id="file-c-specs" data-bar="Credits // SPECS">
   <h3>SPECS</h3>
   <div class="cols"><div class="slot"><span>Image 3:4</span></div>
-  <div class="text"><p>Deep Contact was made with the support of SPECS.</p><p>[A line of thanks.]</p><p><a href="https://www.specs.com/" rel="noopener">specs.com</a></p></div></div>
+  <div class="text"><p>Deep Contact was made with the support of SPECS.</p><p><a href="https://www.specs.com/" rel="noopener">specs.com</a></p></div></div>
 </template>
 
 <script src="../assets/site.js?v=6f5cbb11"></script>
@@ -776,7 +775,7 @@ function register(){
       });
       else if(what==='share')cardBlob(function(blob){
         if(!blob)return;
-        if(canFile){navigator.share({files:[new File([blob],'thallas-corp-id-card.png',{type:'image/png'})],title:'Thallas Corp ID',text:'I enrolled in Expedition Deep Contact.'}).catch(function(){});}
+        if(canFile){navigator.share({files:[new File([blob],'thallas-corp-id-card.png',{type:'image/png'})],title:'Thallas Corp ID',text:'I enrolled in Expedition Deep Contact on Specs.'}).catch(function(){});}
         else{navigator.clipboard.write([new ClipboardItem({'image/png':blob})]).then(function(){say.textContent='Card copied. Paste it into a message or post.';},function(){say.textContent='Copying was blocked. Use Save image instead.';});}
       });
     });
@@ -914,9 +913,9 @@ var MODELS={
     box(.62,.22,.15,.1,.36,.03,1), box(.9,-.38,.05,.14,.22,.24,.55), box(.9,-.4,.175,.06,.14,.02,1),
     ball(.12,.46,.3,.11,.07,.07,1), box(.01,.46,.3,.03,.1,.06,.9)
   ],spots:[
-    {p:[-.38,.5,.26],file:'base-1',label:'Sector 01'},
-    {p:[.62,.76,.13],file:'base-2',label:'Sector 02'},
-    {p:[.2,-.47,.9],file:'base-3',label:'Sector 03'}
+    {p:[-.38,.5,.26],file:'base-1',label:'Reconnaissance'},
+    {p:[.62,.76,.13],file:'base-2',label:'Symbology'},
+    {p:[.2,-.47,.9],file:'base-3',label:'Telemetry'}
   ]},
   /* After the key art: a round hull, a big front viewport, two lamps on stalks, a rudder plate. */
   sub:{s:104,cy:.04,yaw:-.7,parts:[
@@ -929,8 +928,8 @@ var MODELS={
     box(-.2,-.18,.5,.36,.04,.26,.92), box(-.2,-.18,-.5,.36,.04,.26,.92),
     prism('y',-.47,-.36,0,0,.12,.15,10,1)
   ],spots:[
-    {p:[.74,.02,0],file:'sub-1',label:'Submersible: 01'},
-    {p:[-.14,.72,0],file:'sub-2',label:'Submersible: 02'}
+    {p:[.74,.02,0],file:'sub-1',label:'Hydrophone Sonar Array'},
+    {p:[-.14,.72,0],file:'sub-2',label:'Targeted Extraction System'}
   ]},
   /* After the telemetry poster: a jointed arm on a platform, carrying a dart gun with a rear camera. */
   gun:{s:92,cy:-.04,yaw:.5,parts:[
@@ -943,8 +942,8 @@ var MODELS={
     prism('x',.36,.72,.4,0,.055,.045,8,.7), prism('x',.72,1.02,.4,0,.022,.008,6,1),
     box(-.1,.68,0,.025,.26,.025,1)
   ],spots:[
-    {p:[.9,.46,0],file:'gun-1',label:'Dart Gun: 01'},
-    {p:[-.42,.54,.1],file:'gun-2',label:'Dart Gun: 02'}
+    {p:[.9,.46,0],file:'gun-1',label:'GPS Tracking Dart'},
+    {p:[-.42,.54,.1],file:'gun-2',label:'Pneumatic Launch Chamber'}
   ]}
 };
 /* A real mesh, exported from the game's 3D model: positions and triangles packed as numbers,
@@ -991,7 +990,7 @@ try{if(window.DC_MESH&&DC_MESH.octo)(function(d){
   m.anim={rest:new Int16Array(u.buffer,0,d.nv*3),jw:new Uint8Array(u.buffer,o,d.nv*3),M:new Float32Array(u.buffer,mo,d.nf*d.nj*12),nj:d.nj,nf:d.nf,fps:d.fps,cur:new Float32Array(d.nj*12)};
   pose(m,0);
   /* each diamond rides on one vertex, so it swims with the animal */
-  m.spots=[{v:OCTO_SPOTS[0],file:'oct-1',label:'Octopus: 01'},{v:OCTO_SPOTS[1],file:'oct-2',label:'Octopus: 02'},{v:OCTO_SPOTS[2],file:'oct-3',label:'Octopus: 03'}];
+  m.spots=[{v:OCTO_SPOTS[0],file:'oct-1',label:'Chromatophores'},{v:OCTO_SPOTS[1],file:'oct-2',label:'Ink Symbols'},{v:OCTO_SPOTS[2],file:'oct-3',label:'Independent Arms'}];
   m.spots.forEach(function(s){s.p=m.V[s.v];});
   MODELS.oct=m;
 })(DC_MESH.octo);}catch(e){}
