@@ -115,6 +115,10 @@ html.win-open{overflow:hidden}
 .boot-say{margin:0;text-align:center;font-family:var(--display);font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink)}
 .boot-say .dots::after{content:"";animation:dots 1.2s steps(4) infinite}
 @keyframes dots{0%{content:""}25%{content:"."}50%{content:".."}75%{content:"..."}}
+.boot-bar{display:flex;align-items:center;gap:10px;font-family:var(--display);font-size:14px;letter-spacing:.08em}
+.boot-bar .track{flex:1;height:16px;border:2px solid var(--ink);padding:2px}
+.boot-bar i{display:block;height:100%;width:0;background:repeating-linear-gradient(90deg,var(--ink) 0 8px,transparent 8px 10px)}
+.boot-bar b{min-width:3.2em;text-align:right;font-weight:700}
 .boot .term{min-height:0;height:10.5em;overflow-y:auto}
 @media (prefers-reduced-motion:reduce){.boot-say .dots::after{animation:none;content:"..."}}
 /* ---------- Welcome video ---------- */
@@ -511,7 +515,9 @@ function terminal(){
   var f=facts(), log=document.createElement('div'); log.className='term'; log.setAttribute('aria-live','polite');
   /* above the log: a pair of glasses turning while the "program" loads onto them */
   var wrap=document.createElement('div'); wrap.className='boot';
-  wrap.innerHTML='<div class="boot-v"><div class="stage"><canvas width="240" height="180" aria-hidden="true"></canvas></div></div><p class="boot-say">Preparing SPECS for Thallas uplink<span class="dots" aria-hidden="true"></span></p>';
+  wrap.innerHTML='<div class="boot-v"><div class="stage"><canvas width="240" height="180" aria-hidden="true"></canvas></div></div><p class="boot-say">Preparing SPECS for Thallas uplink<span class="dots" aria-hidden="true"></span></p>'+
+    '<div class="boot-bar" role="progressbar" aria-label="Uplink progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="track"><i></i></div><b>0%</b></div>';
+  var bar=wrap.querySelector('.boot-bar'), fill=bar.querySelector('i'), pct=bar.querySelector('b');
   wrap.appendChild(log);
   var mine=openWin('Thallas Corp // Credential analysis',wrap,grant);     /* closing the window early also lets you in */
   try{(function(){
@@ -537,8 +543,12 @@ function terminal(){
     ['> Issuing expedition pass','DONE']
   ];
   var li=0, ci=0, cur=document.createElement('span'); cur.className='cur'; log.appendChild(cur);
+  /* the bar tracks how much of the log has been typed, so it reaches 100% exactly when access is granted */
+  var total=0, sofar=0; lines.forEach(function(L){total+=L[0].length+(L[1]?6:0)+1;});
+  function prog(n){sofar=Math.min(total,sofar+n); var v=Math.floor(sofar/total*100); fill.style.width=v+'%'; pct.textContent=v+'%'; bar.setAttribute('aria-valuenow',v);}
   function put(s){cur.insertAdjacentText('beforebegin',s); log.scrollTop=log.scrollHeight;}
   function done(){
+    sofar=total; prog(0);
     cur.remove();
     var g=document.createElement('strong'); g.className='granted'; g.textContent='Access granted'; log.appendChild(g);
     wrap.querySelector('.boot-say').textContent='SPECS ready';
@@ -549,10 +559,10 @@ function terminal(){
     if(back!==mine)return;                                               /* window was closed */
     if(li>=lines.length)return done();
     var L=lines[li];
-    if(still){put(L[0]+(L[1]?' ...... '+L[1]:'')+'\n'); li++; return setTimeout(step,120);}
-    if(ci<L[0].length){put(L[0].charAt(ci++)); return setTimeout(step,14);}
-    if(L[1]&&ci<L[0].length+6){put(ci===L[0].length?' .':'.'); ci++; return setTimeout(step,95);}
-    put((L[1]?' '+L[1]:'')+'\n'); li++; ci=0; setTimeout(step,170);
+    if(still){put(L[0]+(L[1]?' ...... '+L[1]:'')+'\n'); prog(L[0].length+(L[1]?6:0)+1); li++; return setTimeout(step,120);}
+    if(ci<L[0].length){put(L[0].charAt(ci++)); prog(1); return setTimeout(step,14);}
+    if(L[1]&&ci<L[0].length+6){put(ci===L[0].length?' .':'.'); ci++; prog(1); return setTimeout(step,95);}
+    put((L[1]?' '+L[1]:'')+'\n'); prog(1); li++; ci=0; setTimeout(step,170);
   }
   step();
 }
