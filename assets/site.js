@@ -16,6 +16,7 @@
   var still=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
   function centre(){root.style.setProperty('--oy',(window.scrollY+window.innerHeight/2)+'px');}
   centre();
+  setTimeout(function(){root.classList.add('tv-on');},1100);   /* the opening animation has finished: retire it */
   window.addEventListener('pageshow',function(e){          /* coming back with the Back button */
     root.classList.remove('tv-off');
     if(e.persisted){centre();root.classList.add('tv-again');setTimeout(function(){root.classList.remove('tv-again');},1100);}
