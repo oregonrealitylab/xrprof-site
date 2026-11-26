@@ -130,6 +130,9 @@ html.win-open{overflow:hidden}
 .boot-bar b{min-width:3.2em;text-align:right;font-weight:700}
 .boot .term{min-height:0;height:10.5em;overflow-y:auto}
 @media (prefers-reduced-motion:reduce){.boot-say .dots::after{animation:none;content:"..."}}
+.specs-v{background:var(--water);align-content:center}
+.specs-v .stage{position:relative;width:100%;aspect-ratio:4/3;cursor:grab;touch-action:pan-y}
+.specs-v canvas{display:block;width:100%;height:100%;image-rendering:pixelated}
 /* ---------- Welcome video ---------- */
 .btn.big{font-size:clamp(17px,2.6vw,22px);padding:14px 26px;cursor:pointer}
 .film{position:relative;align-self:center;width:min(100%,56vh,520px);aspect-ratio:1;border:2px solid var(--ink);background:var(--void);cursor:pointer;overflow:hidden}
@@ -279,7 +282,7 @@ html.win-open{overflow:hidden}
         </article>
         <article class="pcard" id="you-card">
           <button type="button" class="slot slot-btn" id="register-photo" aria-label="Add your ID photo: open registration"><span>Add Your ID Photo</span></button>
-          <h3>Visiting Professor</h3><p class="role">You, the player</p>
+          <h3>Visiting Professor</h3><p class="role">Registration Pending</p>
           <button type="button" class="mini cta-reg" id="register"><i class="gem" aria-hidden="true"></i>Register<i class="gem" aria-hidden="true"></i></button>
         </article>
       </div>
@@ -303,7 +306,7 @@ html.win-open{overflow:hidden}
           <button type="button" class="mini" data-file="c-sirintip">Open file</button>
         </article>
         <article class="pcard">
-          <div class="slot"><span>Image 3:4</span></div>
+          <div class="slot specs-v" id="v-specs"><div class="stage"><canvas width="240" height="180" role="img" aria-label="A pair of glasses, slowly turning"></canvas></div></div>
           <h3>SPECS</h3><p class="role">Underwriting partner</p>
           <button type="button" class="mini" data-file="c-specs">Open file</button>
         </article>
@@ -409,7 +412,7 @@ html.win-open{overflow:hidden}
 </template>
 <template id="file-c-specs" data-bar="Credits // SPECS">
   <h3>SPECS</h3>
-  <div class="cols"><div class="slot"><span>Image 3:4</span></div>
+  <div class="cols"><div class="slot"><img src="dc-specs.png" width="504" height="672" alt="SPECS glasses"></div>
   <div class="text"><p>Deep Contact was made with the support of SPECS.</p><p><a href="https://www.specs.com/" rel="noopener">specs.com</a></p></div></div>
 </template>
 
@@ -417,6 +420,7 @@ html.win-open{overflow:hidden}
 <script src="dc-base.js?v=00b70300"></script>  <!-- the research base mesh, converted from the game's own 3D model, on an octagonal base -->
 <script src="dc-sub.js?v=00b70300"></script>
 <script src="dc-gun.js?v=00b70300"></script>
+<script src="dc-specs.js?v=00b70300"></script>   <!-- the glasses mesh, converted from the supplied 3D model -->
 <script src="dc-octo.js?v=00b70300"></script>  <!-- the octopus mesh and its swim loop, converted from the game's own animated 3D model -->   <!-- the dart gun mesh, converted from the game's own 3D model -->   <!-- the submersible mesh, converted from the game's own 3D model -->
 <script>
 (function(){
@@ -1042,6 +1046,7 @@ MODELS.specs={s:80,cy:0,yaw:.6,spots:[],parts:(function(){
   });
   return P;
 })()};
+try{if(window.DC_MESH&&DC_MESH.specs)MODELS.specs=meshModel(DC_MESH.specs,{s:76,cy:0,yaw:.6,fix:function(x,y,z){return [x,y,z];},spots:[]});}catch(e){}
 MODELS.oct={s:100,cy:0,yaw:.5,parts:[ball(0,.2,0,.4,.5,.4,.8)],spots:[]};          /* stand-in if the file fails to load */
 try{if(window.DC_MESH&&DC_MESH.octo)(function(d){
   var m=meshModel(d,{s:80,cy:0,yaw:.5,fix:function(x,y,z){return [x,y,z];},spots:[]});
@@ -1149,6 +1154,7 @@ Viewer.prototype.draw=function(){
 var base=new Viewer($('v-base')), eq=new Viewer($('v-eq')), oct=new Viewer($('v-oct')), viewers=[base,eq,oct];
 window.__dc={base:base,eq:eq,oct:oct,pose:pose};
 base.show('base'); eq.show('sub'); oct.show('oct');
+var specs=new Viewer($('v-specs')); specs.show('specs'); specs.pitch=.3; specs.spin=1.2; viewers.push(specs); window.__dc.specs=specs;      /* the glasses on the SPECS credit card */
 [].forEach.call(document.querySelectorAll('[data-model]'),function(b){
   b.addEventListener('click',function(){
     [].forEach.call(document.querySelectorAll('[data-model]'),function(o){o.setAttribute('aria-pressed',o===b?'true':'false');});
@@ -1163,7 +1169,7 @@ function tick(now){
   var dt=Math.min(.1,(now-last)/1000); last=now;
   viewers.forEach(function(v){
     if(!v.seen||root.classList.contains('gated'))return;
-    if(!still&&now-v.touched>3500){v.yaw+=dt*.32; v.dirty=true;}        /* turns slowly until you take hold of it */
+    if(!still&&now-v.touched>3500){v.yaw+=dt*(v.spin||.32); v.dirty=true;}        /* turns slowly until you take hold of it */
     if(v.m.anim&&!still){pose(v.m,now/1000); v.dirty=true;}                 /* the octopus keeps swimming */
     if(v.dirty){v.draw(); v.dirty=false;}
   });
