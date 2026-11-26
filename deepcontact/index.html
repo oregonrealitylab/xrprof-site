@@ -88,6 +88,15 @@ html.win-open{overflow:hidden}
 .pcard h3{font-size:19px}
 .pcard .role{font-family:var(--display);font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim)}
 .pcard .mini{margin-top:auto;align-self:flex-start}
+/* the Register button asks for attention: a diamond either side and a border that pulses */
+.pcard .cta-reg{display:inline-flex;align-items:center;gap:9px;padding:6px 11px;max-width:100%;font-weight:700;animation:regpulse 1.6s ease-in-out infinite}
+.cta-reg .gem{display:block;width:7px;height:7px;background:currentColor;transform:rotate(45deg);flex:none}
+@keyframes regpulse{0%,100%{box-shadow:0 0 0 0 var(--ink)}50%{box-shadow:0 0 0 4px var(--ink),0 0 18px 4px rgba(242,245,238,.35)}}
+.slot-btn{font:inherit;color:inherit;padding:0;cursor:pointer;width:100%}
+.slot-btn:hover span{background:var(--ink);color:var(--water)}
+.slot-btn:focus-visible{outline:2px dashed var(--ink);outline-offset:4px}
+#you-card.done .cta-reg{animation:none}
+@media (prefers-reduced-motion:reduce){.pcard .cta-reg{animation:none;box-shadow:0 0 0 3px var(--ink)}#you-card.done .cta-reg{box-shadow:none}}
 .slot{aspect-ratio:3/4;border:2px solid var(--ink);background:var(--dither);display:grid;place-items:center;overflow:hidden}
 .slot span{background:var(--water);padding:3px 9px;font-family:var(--display);font-size:13px;letter-spacing:.1em;text-transform:uppercase}
 .slot img{width:100%;height:100%;object-fit:cover;image-rendering:pixelated}
@@ -146,6 +155,7 @@ html.win-open{overflow:hidden}
 .id-row{justify-content:center;gap:16px}
 .fine{font-size:12.5px;line-height:1.5;color:var(--dim)}
 .reg form{gap:12px}
+.reg label small{font-size:inherit;letter-spacing:.06em;opacity:.7}
 .reg label{display:flex;flex-direction:column;gap:4px;font-family:var(--display);font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim)}
 .win [hidden]{display:none!important}
 .reg input:not([type=file]){font:inherit;font-size:16px;letter-spacing:0;text-transform:none;color:var(--ink);background:var(--water);border:2px solid var(--ink);border-radius:0;padding:7px 9px;width:100%;min-width:0}
@@ -268,9 +278,9 @@ html.win-open{overflow:hidden}
           <button type="button" class="mini" data-file="p-quark">Open file</button>
         </article>
         <article class="pcard" id="you-card">
-          <div class="slot"><span>Your ID photo</span></div>
+          <button type="button" class="slot slot-btn" id="register-photo" aria-label="Add your ID photo: open registration"><span>Add Your ID Photo</span></button>
           <h3>Visiting Professor</h3><p class="role">You, the player</p>
-          <button type="button" class="mini" id="register">Register</button>
+          <button type="button" class="mini cta-reg" id="register"><i class="gem" aria-hidden="true"></i>Register<i class="gem" aria-hidden="true"></i></button>
         </article>
       </div>
     </section>
@@ -637,8 +647,9 @@ function drawCard(){
   g.fillRect(40,582,W-80,2); g.save(); g.translate(W/2,583); g.rotate(Math.PI/4); g.fillRect(-7,-7,14,14); g.fillStyle=WAT; g.fillRect(-3,-3,6,6); g.restore();
   /* details */
   g.textAlign='left';
-  [['SPECIALTY',f.spec],['AFFILIATION',f.org],['HOME TOWN',f.town]].forEach(function(r,n){
-    var by=622+n*34; g.fillStyle=DIM; g.font=disp.replace('#',13+'px'); g.fillText(r[0],44,by);
+  var rows=[['SPECIALTY',f.spec],['AFFILIATION',f.org],['HOME TOWN',f.town]].filter(function(r){return r[1];});       /* fields left blank are left off the card */
+  rows.forEach(function(r,n){
+    var by=622+(3-rows.length)*17+n*34; g.fillStyle=DIM; g.font=disp.replace('#',13+'px'); g.fillText(r[0],44,by);
     g.fillStyle=INKC; g.fillText(fitText(g,r[1],386,20,12,mono),170,by);
   });
   /* footer band */
@@ -659,7 +670,8 @@ function cardBlob(done){                                 /* the card at twice th
 function showYou(){                                       /* put the ID photo on the Visiting Professor card */
   var card=$('you-card'); if(!card||!reg.photo)return;
   var slot=card.querySelector('.slot'), img=document.createElement('img');
-  img.src=reg.photo.toDataURL('image/png'); img.alt='Your ID photo'; slot.textContent=''; slot.appendChild(img);
+  img.src=reg.photo.toDataURL('image/png'); img.alt='Your ID photo'; slot.textContent=''; slot.appendChild(img); slot.setAttribute('aria-label','Your ID photo: open registration');
+  if(reg.card)card.classList.add('done');                /* registered: the button stops pulsing */
   if(reg.card)card.querySelector('.role').textContent=reg.f.name;
 }
 
@@ -684,10 +696,10 @@ function register(){
           '<label class="mini" data-do="up">Upload a photo<input type="file" accept="image/*" class="sr"></label>'+
         '</div><p class="fine cam-say" aria-live="polite"></p></div>'+
       '<form class="text" novalidate>'+
-        '<label>Name<input name="name" maxlength="40" autocomplete="name"></label>'+
-        '<label>Specialty<input name="spec" maxlength="48" autocomplete="off"></label>'+
-        '<label>University / company<input name="org" maxlength="56" autocomplete="organization"></label>'+
-        '<label>Home town<input name="town" maxlength="48" autocomplete="address-level2"></label>'+
+        '<label>Name<input name="name" maxlength="40" autocomplete="name" required></label>'+
+        '<label><span>Specialty <small>(optional)</small></span><input name="spec" maxlength="48" autocomplete="off"></label>'+
+        '<label>University / company<input name="org" maxlength="56" autocomplete="organization" required></label>'+
+        '<label><span>Home town <small>(optional)</small></span><input name="town" maxlength="48" autocomplete="address-level2"></label>'+
         '<button type="submit" class="btn" disabled>Generate ID Card</button>'+
         '<p class="fine need" aria-live="polite"></p>'+
         '<p class="fine">Your photo and details stay in this browser. Nothing is uploaded, and everything is erased when you leave the page.</p>'+
@@ -704,7 +716,7 @@ function register(){
     }
     function check(){
       var miss=[]; if(!reg.photo)miss.push('ID photo');
-      [['name','name'],['spec','specialty'],['org','university / company'],['town','home town']].forEach(function(r){reg.f[r[0]]=form.elements[r[0]].value.trim(); if(!reg.f[r[0]])miss.push(r[1]);});
+      [['name','name',1],['spec','specialty',0],['org','university / company',1],['town','home town',0]].forEach(function(r){reg.f[r[0]]=form.elements[r[0]].value.trim(); if(r[2]&&!reg.f[r[0]])miss.push(r[1]);});   /* only name and university / company are required */
       go.disabled=miss.length>0; need.textContent=miss.length?'Still needed: '+miss.join(', ')+'.':'Ready to print.';
     }
     function loop(){
@@ -774,16 +786,16 @@ function register(){
       ['THALLAS CORP // IDENTIFICATION BUREAU',''],
       ['> Receiving registration packet','OK'],
       ['> Verifying name: '+f.name.toUpperCase(),'VERIFIED'],
-      ['> Verifying specialty: '+f.spec.toUpperCase(),'VERIFIED'],
+      f.spec?['> Verifying specialty: '+f.spec.toUpperCase(),'VERIFIED']:null,
       ['> Confirming affiliation: '+f.org.toUpperCase(),'CONFIRMED'],
-      ['> Confirming home town: '+f.town.toUpperCase(),'CONFIRMED'],
+      f.town?['> Confirming home town: '+f.town.toUpperCase(),'CONFIRMED']:null,
       ['> Scanning ID photo','4 TONES / '+PW+'x'+PH],
       ['> Assigning rank','VISITING PROFESSOR'],
       ['> Assigning ID number',reg.id],
       ['> Clearance: AQUARIUS RESEARCH BASE','GRANTED'],
       ['> Sending card to printer','OK'],
       ['> Printing ID card','DONE']
-    ],alive,function(){
+    ].filter(Boolean),alive,function(){
       var g=document.createElement('strong'); g.className='granted'; g.textContent='ID issued'; log.appendChild(g);
       ready.then(function(){setTimeout(function(){if(!alive())return; reg.card=drawCard(); showYou(); cardView(true);},still?700:1200);});
     });
@@ -793,7 +805,7 @@ function register(){
     body.innerHTML='<h3>Your ID card</h3><div class="idcard'+(fresh&&!still?' print':'')+'"></div>'+
       '<div class="cam-row id-row"><button type="button" class="btn" data-do="save">Save image</button><button type="button" class="btn ghost" data-do="share">Share</button><button type="button" class="btn ghost" data-do="close">Close</button></div>'+
       '<p class="fine id-say" aria-live="polite"></p><button type="button" class="mini" data-do="again" style="align-self:center">Start over</button>';
-    var img=new Image(); img.alt='Thallas Corp ID card: Visiting Professor '+reg.f.name+', '+reg.f.spec+', '+reg.f.org+', '+reg.f.town+'. ID number '+reg.id+'.';
+    var img=new Image(); img.alt='Thallas Corp ID card: Visiting Professor '+[reg.f.name,reg.f.spec,reg.f.org,reg.f.town].filter(Boolean).join(', ')+'. ID number '+reg.id+'.';
     img.src=reg.card.toDataURL('image/png'); body.querySelector('.idcard').appendChild(img);
     var say=body.querySelector('.id-say'), share=body.querySelector('[data-do=share]');
     var canFile=false; try{canFile=!!(navigator.canShare&&navigator.canShare({files:[new File([''],'x.png',{type:'image/png'})]}));}catch(e){}
@@ -817,7 +829,7 @@ function register(){
     });
   }
 }
-$('register').addEventListener('click',register);
+$('register').addEventListener('click',register); $('register-photo').addEventListener('click',register);
 /* ================= Welcome video =================
    The film plays from this site, so each frame can be redrawn in the site's four tones.
    To keep faces and objects readable it is drawn at 250x250, local contrast is lifted first
