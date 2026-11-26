@@ -228,7 +228,7 @@ html.win-open{overflow:hidden}
       <header class="dh">
         <div class="rule"><span class="dia" aria-hidden="true"></span></div>
         <h2>Equipment</h2>
-        <p class="sub" id="eq-sub">Submersible</p>
+        <p class="sub" id="eq-sub">Submersible: Unmanned Underwater Surveying Vehicle</p>
       </header>
       <div class="toggle" role="group" aria-label="Choose equipment">
         <button type="button" class="mini" data-model="sub" aria-pressed="true">Submersible</button>
@@ -1155,7 +1155,7 @@ base.show('base'); eq.show('sub'); oct.show('oct');
   b.addEventListener('click',function(){
     [].forEach.call(document.querySelectorAll('[data-model]'),function(o){o.setAttribute('aria-pressed',o===b?'true':'false');});
     eq.show(b.getAttribute('data-model'));
-    $('eq-sub').textContent=b.getAttribute('data-model')==='gun'?'Tracking Projector · tag creatures with marine telemetry':'Submersible';
+    $('eq-sub').textContent=b.getAttribute('data-model')==='gun'?'Tracking Projector · tag creatures with marine telemetry':'Submersible: Unmanned Underwater Surveying Vehicle';
   });
 });
 var last=0;
