@@ -130,9 +130,6 @@ html.win-open{overflow:hidden}
 .boot-bar b{min-width:3.2em;text-align:right;font-weight:700}
 .boot .term{min-height:0;height:10.5em;overflow-y:auto}
 @media (prefers-reduced-motion:reduce){.boot-say .dots::after{animation:none;content:"..."}}
-.specs-v{background:var(--water);align-content:center}
-.specs-v .stage{position:relative;width:100%;aspect-ratio:4/3;cursor:grab;touch-action:pan-y}
-.specs-v canvas{display:block;width:100%;height:100%;image-rendering:pixelated}
 /* ---------- Welcome video ---------- */
 .btn.big{font-size:clamp(17px,2.6vw,22px);padding:14px 26px;cursor:pointer}
 .film{position:relative;align-self:center;width:min(100%,56vh,520px);aspect-ratio:1;border:2px solid var(--ink);background:var(--void);cursor:pointer;overflow:hidden}
@@ -306,7 +303,7 @@ html.win-open{overflow:hidden}
           <button type="button" class="mini" data-file="c-sirintip">Open file</button>
         </article>
         <article class="pcard">
-          <div class="slot specs-v" id="v-specs"><div class="stage"><canvas width="240" height="180" role="img" aria-label="A pair of glasses, slowly turning"></canvas></div></div>
+          <div class="slot"><img src="dc-specs.png" width="504" height="672" alt="A pair of thick-framed glasses on a reflective surface"></div>
           <h3>SPECS</h3><p class="role">Underwriting partner</p>
           <button type="button" class="mini" data-file="c-specs">Open file</button>
         </article>
@@ -412,7 +409,7 @@ html.win-open{overflow:hidden}
 </template>
 <template id="file-c-specs" data-bar="Credits // SPECS">
   <h3>SPECS</h3>
-  <div class="cols"><div class="slot"><img src="dc-specs.png" width="504" height="672" alt="SPECS glasses"></div>
+  <div class="cols"><div class="slot"><img src="dc-specs.png" width="504" height="672" alt="A pair of thick-framed glasses on a reflective surface"></div>
   <div class="text"><p>Deep Contact was made with the support of SPECS.</p><p><a href="https://www.specs.com/" rel="noopener">specs.com</a></p></div></div>
 </template>
 
@@ -1154,7 +1151,6 @@ Viewer.prototype.draw=function(){
 var base=new Viewer($('v-base')), eq=new Viewer($('v-eq')), oct=new Viewer($('v-oct')), viewers=[base,eq,oct];
 window.__dc={base:base,eq:eq,oct:oct,pose:pose};
 base.show('base'); eq.show('sub'); oct.show('oct');
-var specs=new Viewer($('v-specs')); specs.show('specs'); specs.pitch=.3; specs.spin=1.2; viewers.push(specs); window.__dc.specs=specs;      /* the glasses on the SPECS credit card */
 [].forEach.call(document.querySelectorAll('[data-model]'),function(b){
   b.addEventListener('click',function(){
     [].forEach.call(document.querySelectorAll('[data-model]'),function(o){o.setAttribute('aria-pressed',o===b?'true':'false');});
