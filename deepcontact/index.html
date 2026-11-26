@@ -222,7 +222,7 @@ html.win-open{overflow:hidden}
       </header>
       <div class="toggle" role="group" aria-label="Choose equipment">
         <button type="button" class="mini" data-model="sub" aria-pressed="true">Submersible</button>
-        <button type="button" class="mini" data-model="gun" aria-pressed="false">Dart Gun</button>
+        <button type="button" class="mini" data-model="gun" aria-pressed="false">Tracking Projector</button>
       </div>
       <div class="viewer" id="v-eq">
         <div class="frame"><div class="stage"><canvas width="240" height="180" tabindex="0" aria-label="Rotatable model of the selected equipment. Use the left and right arrow keys to turn it."></canvas></div></div>
@@ -347,14 +347,14 @@ html.win-open{overflow:hidden}
   <div class="cols"><div class="slot"><img src="dc-sub-extract.png" width="504" height="672" alt="The submersible hovering over the seafloor, a beam from its belly lifting particles"></div>
   <div class="text"><p>The submersible picks out a single point of interest on the seafloor and collects only what scientists need from it, then seals each sample away so it reaches the lab undisturbed.</p></div></div>
 </template>
-<template id="file-gun-1" data-bar="Equipment // Dart Gun // GPS Tracking Dart">
+<template id="file-gun-1" data-bar="Equipment // Tracking Projector // GPS Tracking Dart">
   <h3>GPS Tracking Dart</h3>
-  <div class="cols"><div class="slot"><img src="dc-poster-telemetry.png" alt="Poster: tag creatures with marine telemetry"></div>
+  <div class="cols"><div class="slot"><img src="dc-gun-dart.png" width="504" height="672" alt="Close view of the tracking dart at the tip of the projector"></div>
   <div class="text"><p>Each dart carries a small biotag that clings to the creature&rsquo;s skin and reports its position live to the research base, recording every movement, feeding stop and social encounter.</p></div></div>
 </template>
-<template id="file-gun-2" data-bar="Equipment // Dart Gun // Pneumatic Launch Chamber">
+<template id="file-gun-2" data-bar="Equipment // Tracking Projector // Pneumatic Launch Chamber">
   <h3>Pneumatic Launch Chamber</h3>
-  <div class="cols"><div class="slot"><span>Image 3:4</span></div>
+  <div class="cols"><div class="slot"><img src="dc-gun-chamber.png" width="504" height="672" alt="Close view of the projector body, marked Thallas Corp"></div>
   <div class="text"><p>A cartridge of compressed gas powers the shot, and pulling back the handle loads the chamber with more pressure, so the gas can drive the dart through the water without hurting the creature.</p></div></div>
 </template>
 <template id="file-oct-1" data-bar="Target Specimen // Chromatophores">
@@ -1141,7 +1141,7 @@ base.show('base'); eq.show('sub'); oct.show('oct');
   b.addEventListener('click',function(){
     [].forEach.call(document.querySelectorAll('[data-model]'),function(o){o.setAttribute('aria-pressed',o===b?'true':'false');});
     eq.show(b.getAttribute('data-model'));
-    $('eq-sub').textContent=b.getAttribute('data-model')==='gun'?'Dart gun · tag creatures with marine telemetry':'Submersible';
+    $('eq-sub').textContent=b.getAttribute('data-model')==='gun'?'Tracking Projector · tag creatures with marine telemetry':'Submersible';
   });
 });
 var last=0;
