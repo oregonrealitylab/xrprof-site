@@ -359,17 +359,17 @@ html.win-open{overflow:hidden}
 </template>
 <template id="file-oct-1" data-bar="Target Specimen // Chromatophores">
   <h3>Chromatophores</h3>
-  <div class="cols"><div class="slot"><img src="dc-oct-chroma.png" width="504" height="672" alt="The octopus glowing, one arm raised"></div>
+  <div class="cols"><div class="slot"><img src="dc-oct-chroma.png" width="504" height="672" alt="Microscope view of octopus skin chromatophores"></div>
   <div class="text"><p>Thousands of tiny pigment sacs in the skin stretch and shrink in a fraction of a second, letting the octopus blend into its surroundings. Our research suggests these shifting patterns may also be a form of language.</p></div></div>
 </template>
-<template id="file-oct-2" data-bar="Target Specimen // Ink Symbols">
-  <h3>Ink Symbols</h3>
-  <div class="cols"><div class="slot"><img src="dc-oct-ink.png" width="504" height="672" alt="The octopus above a glowing ring of ink"></div>
+<template id="file-oct-2" data-bar="Target Specimen // Visual Language">
+  <h3>Visual Language</h3>
+  <div class="cols"><div class="slot"><img src="dc-oct-ink.png" width="504" height="672" alt="ROV camera view of the octopus beside a curling cloud of ink"></div>
   <div class="text"><p>Octopuses are known to release clouds of ink to escape predators. This one shapes its ink into deliberate forms and visual symbols, a behavior never recorded before that may be a way of communicating.</p></div></div>
 </template>
-<template id="file-oct-3" data-bar="Target Specimen // Independent Arms">
-  <h3>Independent Arms</h3>
-  <div class="cols"><div class="slot"><span>Image 3:4</span></div>
+<template id="file-oct-3" data-bar="Target Specimen // Decentralized Nervous System">
+  <h3>Decentralized Nervous System</h3>
+  <div class="cols"><div class="slot"><img src="dc-oct-arms.png" width="504" height="672" alt="ROV camera view of an octopus arm holding a shell while another grips a pipe"></div>
   <div class="text"><p>About two-thirds of an octopus&rsquo;s neurons sit in its arms rather than its brain, so each arm can touch, taste and make decisions on its own. In effect, the creature thinks with its whole body.</p></div></div>
 </template>
 <template id="file-p-flores" data-bar="Personnel // Dr. Flores">
@@ -1038,7 +1038,7 @@ try{if(window.DC_MESH&&DC_MESH.octo)(function(d){
   m.anim={rest:new Int16Array(u.buffer,0,d.nv*3),jw:new Uint8Array(u.buffer,o,d.nv*3),M:new Float32Array(u.buffer,mo,d.nf*d.nj*12),nj:d.nj,nf:d.nf,fps:d.fps,cur:new Float32Array(d.nj*12)};
   pose(m,0);
   /* each diamond rides on one vertex, so it swims with the animal */
-  m.spots=[{v:OCTO_SPOTS[0],file:'oct-1',label:'Chromatophores'},{v:OCTO_SPOTS[1],file:'oct-2',label:'Ink Symbols'},{v:OCTO_SPOTS[2],file:'oct-3',label:'Independent Arms'}];
+  m.spots=[{v:OCTO_SPOTS[0],file:'oct-1',label:'Chromatophores'},{v:OCTO_SPOTS[1],file:'oct-2',label:'Visual Language'},{v:OCTO_SPOTS[2],file:'oct-3',label:'Decentralized Nervous System'}];
   m.spots.forEach(function(s){s.p=m.V[s.v];});
   MODELS.oct=m;
 })(DC_MESH.octo);}catch(e){}
