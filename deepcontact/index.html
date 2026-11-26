@@ -339,12 +339,12 @@ html.win-open{overflow:hidden}
 </template>
 <template id="file-sub-1" data-bar="Equipment // Submersible // Hydrophone Sonar Array">
   <h3>Hydrophone Sonar Array</h3>
-  <div class="cols"><div class="slot"><img src="dc-sub-sonar.png" width="504" height="672" alt="The submersible, with its round viewing ports and a grabber arm above"></div>
+  <div class="cols"><div class="slot"><img src="dc-sub-sonar.png" width="504" height="672" alt="Close view of the submersible hull: round ports, a lamp and a hatch"></div>
   <div class="text"><p>A ring of underwater microphones along the hull sends out sonar pulses and listens for their echoes, mapping the seafloor in real time while Thallas AI picks out animal calls from the background noise of the deep.</p></div></div>
 </template>
 <template id="file-sub-2" data-bar="Equipment // Submersible // Targeted Extraction System">
   <h3>Targeted Extraction System</h3>
-  <div class="cols"><div class="slot"><img src="dc-sub-extract.png" width="504" height="672" alt="The submersible under its grabber arm"></div>
+  <div class="cols"><div class="slot"><img src="dc-sub-extract.png" width="504" height="672" alt="The submersible hovering over the seafloor, a beam from its belly lifting particles"></div>
   <div class="text"><p>The submersible picks out a single point of interest on the seafloor and collects only what scientists need from it, then seals each sample away so it reaches the lab undisturbed.</p></div></div>
 </template>
 <template id="file-gun-1" data-bar="Equipment // Dart Gun // GPS Tracking Dart">
@@ -1000,7 +1000,7 @@ try{if(window.DC_MESH&&DC_MESH.base)MODELS.base=meshModel(DC_MESH.base,{s:98,cy:
 try{if(window.DC_MESH&&DC_MESH.sub)MODELS.sub=meshModel(DC_MESH.sub,{s:84,cy:0,yaw:-.7,
   fix:function(x,y,z){return [z*.9786-x*.206,y,-z*.206-x*.9786];},   /* turn the model so its length runs left to right, nose square to the axis */
   spots:[{p:[-.33,.02,.77],file:'sub-1',label:MODELS.sub.spots[0].label},        /* the side dome */
-         {p:[-.87,.6,.46],file:'sub-2',label:MODELS.sub.spots[1].label}]});}catch(e){}   /* a lamp on its stalk */
+         {p:[-.07,-.6,.05],file:'sub-2',label:MODELS.sub.spots[1].label}]});}catch(e){}   /* just under the belly, so it shows below the hull instead of hiding behind it */
 try{if(window.DC_MESH&&DC_MESH.gun)MODELS.gun=meshModel(DC_MESH.gun,{s:98,cy:0,yaw:.6,
   fix:function(x,y,z){return [z,y,-x];},            /* turn the model so the barrel runs left to right */
   spots:[{p:[-.65,.25,-.02],file:'gun-1',label:MODELS.gun.spots[0].label},        /* the dart at the muzzle */
